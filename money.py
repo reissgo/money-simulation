@@ -112,19 +112,30 @@ def purchase():
             else:
                 agents[buying_agent_idx].num_units_purchased_on_last_shopping_trip = 0
                 agents[buying_agent_idx].num_units_available_on_last_shopping_trip = (agents[selling_agent_idx].stock_for_sale / const.UNIT_OF_GOODS)
-                num_purchases_made = 0
+                num_purchases_made = False
+
+                loop_counter = 0
                 while True:
-                    purchase_made_flag = 0
+                    loop_counter += 1
+
+                    #if loop_counter > 10000:
+                    #   print(f"Oops!.. We found selling agent {selling_agent_idx} that currently has {agents[selling_agent_idx].stock_for_sale} for sale")
+                    #    input("Pak")
+                    purchase_made_flag = False
                     # if we can afford to buy then decide if we would *like* to buy
                     if agents[buying_agent_idx].our_money >= (agents[selling_agent_idx].selling_price * const.UNIT_OF_GOODS):
-                        wellbeing_now = wellbeing_from_consumption_and_savings(buying_agent_idx, 0, 0)
-                        post_purchase_wellbeing = wellbeing_from_consumption_and_savings(
-                            buying_agent_idx,
-                            const.UNIT_OF_GOODS,
-                            -agents[selling_agent_idx].selling_price * const.UNIT_OF_GOODS)
+                        # we have enough money to buy goods from selling agent...
+                        # haven't checked yet if we actually *want* to make the purchase
 
-                        if (post_purchase_wellbeing > wellbeing_now):
-                            purchase_made_flag = 1
+                        wellbeing_now = wellbeing_from_consumption_and_savings(buying_agent_idx, 0, 0)
+
+                        post_purchase_wellbeing = wellbeing_from_consumption_and_savings(
+                                                                                            buying_agent_idx,
+                                                                                            const.UNIT_OF_GOODS,
+                                                                                            -agents[selling_agent_idx].selling_price * const.UNIT_OF_GOODS)
+
+                        if post_purchase_wellbeing > wellbeing_now:
+                            purchase_made_flag = True
                             num_purchases_made += 1
 
                             agents[buying_agent_idx].num_units_purchased_on_last_shopping_trip += 1
@@ -154,16 +165,25 @@ def purchase():
 
                             last_observed_purchase_price = agents[selling_agent_idx].selling_price
 
-                        # else report that we can't afford to purchase anything
-                        else:
+                        else:  # report that we can't afford to purchase anything
                             # print diagnostic?
-                            pass
+                            assert purchase_made_flag is False
 
-                        if purchase_made_flag and agents[selling_agent_idx].stock_for_sale >= const.UNIT_OF_GOODS:
-                            # go round loop again and see if we should buy another one
+                        if purchase_made_flag and agents[selling_agent_idx].stock_for_sale >= const.UNIT_OF_GOODS:  # go round loop again and see if we should buy another one
+                            # we just made a purchase, let's pass, i.e. go round the "while true" loop again
+                            if loop_counter > 10000:
+                                print(f"Go round again ... wellbeing_now={wellbeing_now} post_purchase_wellbeing={post_purchase_wellbeing}")
                             pass
                         else:
+                            if loop_counter > 10000:
+                                print(f"break")
                             break
+
+                        if loop_counter > 10000:
+                            print(f"??")
+                    else:
+                        # we simply can not afford to buy from seller
+                        break;
         else:
             agents[buying_agent_idx].iterations_since_last_purchase += 1
 
@@ -173,14 +193,10 @@ def produce():
         agent.stock_for_sale += (agent.goods_we_produce_per_day / const.ITERATIONS_PER_DAY)
 
 
-#def sales_per_day_since_last_price_change(me):  # wtf does this do?
-#    return agents[me].sales_since_last_price_change * const.ITERATIONS_PER_DAY / agents[me].iterations_since_last_price_change
-
-
 def modify_prices():
     for agent in agents:
         if agent.iterations_since_last_price_change > (agent.days_between_price_changes * const.ITERATIONS_PER_DAY):
-            #sales_per_day = sales_per_day_since_last_price_change(i)
+            assert agent.iterations_since_last_price_change > 0
             sales_per_day = agent.sales_since_last_price_change * const.ITERATIONS_PER_DAY / agent.iterations_since_last_price_change
             stock_growth_per_day = agent.goods_we_produce_per_day - sales_per_day
 
@@ -189,12 +205,10 @@ def modify_prices():
             else:
                 days_till_stock_storage_full = const.INIFINITE
 
-
             if stock_growth_per_day < 0:
                 days_till_stock_storage_empty = agent.stock_for_sale / (-1 * stock_growth_per_day)
             else:
                 days_till_stock_storage_empty = const.INIFINITE
-
 
             if stock_growth_per_day > 0:  # stock room filling up
                 if days_till_stock_storage_full < 3:
@@ -202,36 +216,36 @@ def modify_prices():
                     agent.iterations_since_last_price_change = 0
                     agent.sales_since_last_price_change = 0
 
-                if 3 >= days_till_stock_storage_full > 5: # // NEARLY FULL! - lower prices now!
+                if 3 >= days_till_stock_storage_full > 5:           # // NEARLY FULL! - lower prices now!
                     agent.selling_price *= 0.98
                     agent.iterations_since_last_price_change = 0
                     agent.sales_since_last_price_change = 0
 
-                if 5 <= days_till_stock_storage_full < 10: # // NEARLY FULL! - lower prices now!
+                if 5 <= days_till_stock_storage_full < 10:          # // NEARLY FULL! - lower prices now!
                     agent.selling_price *= 0.99
                     agent.iterations_since_last_price_change = 0
                     agent.sales_since_last_price_change = 0
 
-                if 20 > days_till_stock_storage_full < 40: # // WON'T BEE FULL FOR AGES - raise prices!
+                if 20 > days_till_stock_storage_full < 40:          # // WON'T BEE FULL FOR AGES - raise prices!
                     agent.selling_price *= 1.02
                     agent.iterations_since_last_price_change = 0
                     agent.sales_since_last_price_change = 0
 
-                if days_till_stock_storage_full >= 40: # // WON'T BEE FULL FOR AGES - raise prices!
+                if days_till_stock_storage_full >= 40:              # // WON'T BEE FULL FOR AGES - raise prices!
                     agent.selling_price *= 1.03
                     agent.iterations_since_last_price_change = 0
                     agent.sales_since_last_price_change = 0
 
-                if stock_growth_per_day < 0: # // stock room emptying
-                    if days_till_stock_storage_empty < 3: # // NEARLY
-                        agent.selling_price *= 1.1
-                        agent.iterations_since_last_price_change = 0
-                        agent.sales_since_last_price_change = 0
+            if stock_growth_per_day < 0: # // stock room emptying
+                if days_till_stock_storage_empty < 3:           # // NEARLY
+                    agent.selling_price *= 1.1
+                    agent.iterations_since_last_price_change = 0
+                    agent.sales_since_last_price_change = 0
 
-                    elif agent.stock_for_sale < (const.MAXIMUM_STOCK / 2): # // we can risk raising prices a smidge
-                        agent.selling_price *= 1.05
-                        agent.iterations_since_last_price_change = 0
-                        agent.sales_since_last_price_change = 0
+                elif agent.stock_for_sale < (const.MAXIMUM_STOCK / 2):  # // we can risk raising prices a smidge
+                    agent.selling_price *= 1.05
+                    agent.iterations_since_last_price_change = 0
+                    agent.sales_since_last_price_change = 0
 
 
 
@@ -305,7 +319,7 @@ history_of_agents_our_money = []
 print("glob.econ_iters_to_do_this_time :" + str(glob.econ_iters_to_do_this_time))
 for i in range(0, glob.econ_iters_to_do_this_time):
     iterate()
-    if math.fmod(i, 10) == 0:
+    if math.fmod(i, 10000) == 0:
         print(i)
     history_of_average_current_selling_price.append(average_current_selling_price())
     history_of_agents_price.append(agents[agent_to_diagnose].selling_price)
