@@ -6,8 +6,8 @@ import globals as glob
 from agent_class_definition import AgentClass
 import random
 import math
-
 from matplotlib import pyplot as plt
+
 
 def random_other_agent_with_stock_for_sale(buyer_idx): # done
     for ctr in range(1, 10):
@@ -15,6 +15,7 @@ def random_other_agent_with_stock_for_sale(buyer_idx): # done
         if ans != buyer_idx and agents[ans].stock_for_sale >= const.UNIT_OF_GOODS:
             return ans
     return const.NO_AGENT_FOUND
+
 
 def average_current_selling_price():
     average = 0
@@ -26,9 +27,11 @@ def average_current_selling_price():
 
     return average
 
+
 def raw_wellbeing_from_savings(savings):
     x = savings / (average_current_selling_price() * const.TYPICAL_GOODS_MADE_PER_DAY)
     return -.9 + 2 / (1 + math.exp(-x)) + x * .05
+
 
 def wellbeing_from_savings(agent_number, mod):
     agents[agent_number].num_days_savings_will_last = (agents[agent_number].our_money + mod) / \
@@ -37,6 +40,7 @@ def wellbeing_from_savings(agent_number, mod):
     x = agents[agent_number].num_days_savings_will_last  # storing in 'x' to make the following equation look nicer
 
     return -.9 + 2 / (1 + math.exp(-x)) + x * .05
+
 
 def select_agent_to_buy_from(purchasing_agent_idx):
     # collect SIZE_OF_SELECTION_LIST random other agents
@@ -84,12 +88,15 @@ def select_agent_to_buy_from(purchasing_agent_idx):
 
     ###############################################
 
+
 def wellbeing_from_consumption(agent_number, mod):
     x = agents[agent_number].goods_purchased + mod
     return x*.05+1/(1+math.exp(-(x-6)*1))
 
+
 def wellbeing_from_consumption_and_savings(agent_number, modcon, modsav):
     return wellbeing_from_consumption(agent_number, modcon) * wellbeing_from_savings(agent_number, modsav)
+
 
 def purchase():
     shuffled_agent_index_list = list(range(0, const.NUM_AGENTS))
@@ -160,24 +167,78 @@ def purchase():
         else:
             agents[buying_agent_idx].iterations_since_last_purchase += 1
 
+
 def produce():
     for agent in agents:
         agent.stock_for_sale += (agent.goods_we_produce_per_day / const.ITERATIONS_PER_DAY)
 
-def modify_prices():
-    ### ALERT THIS WAS NOT THE BEST SOLUTION - command2.cpp contains a better one!
-    ### ALERT THIS WAS NOT THE BEST SOLUTION - command2.cpp contains a better one!
-    ### ALERT THIS WAS NOT THE BEST SOLUTION - command2.cpp contains a better one!
-    ### ALERT THIS WAS NOT THE BEST SOLUTION - command2.cpp contains a better one!
 
+#def sales_per_day_since_last_price_change(me):  # wtf does this do?
+#    return agents[me].sales_since_last_price_change * const.ITERATIONS_PER_DAY / agents[me].iterations_since_last_price_change
+
+
+def modify_prices():
     for agent in agents:
-        if agent.stock_for_sale >= const.UNIT_OF_GOODS:
-            agent.selling_price_multiplier = 1 + (agent.stock_for_sale - const.OPTIMAL_STOCK) * -.00005
-            agent.selling_price *= agent.selling_price_multiplier
+        if agent.iterations_since_last_price_change > (agent.days_between_price_changes * const.ITERATIONS_PER_DAY):
+            #sales_per_day = sales_per_day_since_last_price_change(i)
+            sales_per_day = agent.sales_since_last_price_change * const.ITERATIONS_PER_DAY / agent.iterations_since_last_price_change
+            stock_growth_per_day = agent.goods_we_produce_per_day - sales_per_day
+
+            if stock_growth_per_day > 0:
+                days_till_stock_storage_full = (const.MAXIMUM_STOCK - agent.stock_for_sale) / stock_growth_per_day
+            else:
+                days_till_stock_storage_full = const.INIFINITE
+
+
+            if stock_growth_per_day < 0:
+                days_till_stock_storage_empty = agent.stock_for_sale / (-1 * stock_growth_per_day)
+            else:
+                days_till_stock_storage_empty = const.INIFINITE
+
+
+            if stock_growth_per_day > 0:  # stock room filling up
+                if days_till_stock_storage_full < 3:
+                    agent.selling_price *= 0.95
+                    agent.iterations_since_last_price_change = 0
+                    agent.sales_since_last_price_change = 0
+
+                if 3 >= days_till_stock_storage_full > 5: # // NEARLY FULL! - lower prices now!
+                    agent.selling_price *= 0.98
+                    agent.iterations_since_last_price_change = 0
+                    agent.sales_since_last_price_change = 0
+
+                if 5 <= days_till_stock_storage_full < 10: # // NEARLY FULL! - lower prices now!
+                    agent.selling_price *= 0.99
+                    agent.iterations_since_last_price_change = 0
+                    agent.sales_since_last_price_change = 0
+
+                if 20 > days_till_stock_storage_full < 40: # // WON'T BEE FULL FOR AGES - raise prices!
+                    agent.selling_price *= 1.02
+                    agent.iterations_since_last_price_change = 0
+                    agent.sales_since_last_price_change = 0
+
+                if days_till_stock_storage_full >= 40: # // WON'T BEE FULL FOR AGES - raise prices!
+                    agent.selling_price *= 1.03
+                    agent.iterations_since_last_price_change = 0
+                    agent.sales_since_last_price_change = 0
+
+                if stock_growth_per_day < 0: # // stock room emptying
+                    if days_till_stock_storage_empty < 3: # // NEARLY
+                        agent.selling_price *= 1.1
+                        agent.iterations_since_last_price_change = 0
+                        agent.sales_since_last_price_change = 0
+
+                    elif agent.stock_for_sale < (const.MAXIMUM_STOCK / 2): # // we can risk raising prices a smidge
+                        agent.selling_price *= 1.05
+                        agent.iterations_since_last_price_change = 0
+                        agent.sales_since_last_price_change = 0
+
+
 
 def consume():
     for agent in agents:
         agent.goods_purchased *= glob.one_day_half_life_multiplier
+
 
 def iterate():
     for agent in agents:
@@ -195,26 +256,37 @@ def iterate():
         agent.iterations_since_last_purchase += 1
         agent.iterations_since_last_price_change += 1
 
+
 def do_all_plots():
-    plt.subplot(4, 1, 1)
+
+    plt.rcParams["figure.figsize"] = (18,12)
+
+    plt.subplot(5, 1, 1)
     plt.ylabel("Average selling price")
     plt.plot(list(range(glob.econ_iters_to_do_this_time)), history_of_average_current_selling_price, ",")
 
-    plt.subplot(4, 1, 2)
+    plt.subplot(5, 1, 2)
     plt.ylabel(f"Agent[{agent_to_diagnose}] selling price")
     plt.plot(list(range(glob.econ_iters_to_do_this_time)), history_of_agents_price, ",")
 
-    plt.subplot(4, 1, 3)
+    plt.subplot(5, 1, 3)
     plt.ylabel(f"Agent[{agent_to_diagnose}] stock for sale")
+    axes = plt.gca()
+    axes.set_ylim([0, const.MAXIMUM_STOCK * 1.1])
     plt.plot(list(range(glob.econ_iters_to_do_this_time)), history_of_agents_stock_for_sale, ",")
     plt.plot([0, glob.econ_iters_to_do_this_time], [const.OPTIMAL_STOCK, const.OPTIMAL_STOCK])
     plt.plot([0, glob.econ_iters_to_do_this_time], [const.MAXIMUM_STOCK, const.MAXIMUM_STOCK])
 
-    plt.subplot(4, 1, 4)
+    plt.subplot(5, 1, 4)
     plt.ylabel(f"Agent[{agent_to_diagnose}] goods purchased")
     plt.plot(list(range(glob.econ_iters_to_do_this_time)), history_of_agents_goods_purchased, ",")
 
+    plt.subplot(5, 1, 5)
+    plt.ylabel(f"Agent[{agent_to_diagnose}] our money")
+    plt.plot(list(range(glob.econ_iters_to_do_this_time)), history_of_agents_our_money, ",")
+
     plt.show()
+
 
 agent_to_diagnose = 0
 
@@ -228,6 +300,7 @@ history_of_average_current_selling_price = []
 history_of_agents_price = []
 history_of_agents_stock_for_sale = []
 history_of_agents_goods_purchased = []
+history_of_agents_our_money = []
 
 print("glob.econ_iters_to_do_this_time :" + str(glob.econ_iters_to_do_this_time))
 for i in range(0, glob.econ_iters_to_do_this_time):
@@ -238,6 +311,7 @@ for i in range(0, glob.econ_iters_to_do_this_time):
     history_of_agents_price.append(agents[agent_to_diagnose].selling_price)
     history_of_agents_stock_for_sale.append(agents[agent_to_diagnose].stock_for_sale)
     history_of_agents_goods_purchased.append(agents[agent_to_diagnose].goods_purchased)
+    history_of_agents_our_money.append(agents[agent_to_diagnose].our_money)
 
 do_all_plots()
 
