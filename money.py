@@ -275,32 +275,57 @@ def do_all_plots():
 
     plt.rcParams["figure.figsize"] = (18,12)
 
-    plt.subplot(5, 1, 1)
+    plt.subplots_adjust(top=.98)
+    plt.subplots_adjust(bottom=.02)
+
+    numrows = 6
+
+    plt.subplot(numrows,1,1)
     plt.ylabel("Average selling price")
     plt.plot(list(range(glob.econ_iters_to_do_this_time)), history_of_average_current_selling_price, ",")
 
-    plt.subplot(5, 1, 2)
+    plt.subplot(numrows,1,2)
     plt.ylabel(f"Agent[{agent_to_diagnose}] selling price")
     plt.plot(list(range(glob.econ_iters_to_do_this_time)), history_of_agents_price, ",")
 
-    plt.subplot(5, 1, 3)
+    plt.subplot(numrows,1,3)
     plt.ylabel(f"Agent[{agent_to_diagnose}] stock for sale")
     axes = plt.gca()
-    axes.set_ylim([0, const.MAXIMUM_STOCK * 1.1])
+    axes.set_ylim([0, const.MAXIMUM_STOCK * 5.4])
     plt.plot(list(range(glob.econ_iters_to_do_this_time)), history_of_agents_stock_for_sale, ",")
     plt.plot([0, glob.econ_iters_to_do_this_time], [const.OPTIMAL_STOCK, const.OPTIMAL_STOCK])
     plt.plot([0, glob.econ_iters_to_do_this_time], [const.MAXIMUM_STOCK, const.MAXIMUM_STOCK])
 
-    plt.subplot(5, 1, 4)
+    plt.subplot(numrows,1,4)
     plt.ylabel(f"Agent[{agent_to_diagnose}] goods purchased")
     plt.plot(list(range(glob.econ_iters_to_do_this_time)), history_of_agents_goods_purchased, ",")
 
-    plt.subplot(5, 1, 5)
+    plt.subplot(numrows,1,5)
     plt.ylabel(f"Agent[{agent_to_diagnose}] our money")
     plt.plot(list(range(glob.econ_iters_to_do_this_time)), history_of_agents_our_money, ",")
 
-    plt.show()
+    plt.subplot(numrows, 5, (numrows-1) * 5 + 1)
+    plt.ylabel("Sell Price histo")
+    plt.hist(all_prices_as_list, range=(0, max(all_prices_as_list) * 1.3), bins=20)
 
+    plt.subplot(numrows, 5, (numrows-1) * 5 + 2)
+    plt.ylabel("Stock histo")
+    plt.hist(stock_for_sale_as_list, range=(0, max(stock_for_sale_as_list) * 5.3), bins=20)
+
+    plt.subplot(numrows, 5, (numrows-1) * 5 + 3)
+    plt.ylabel("money histo")
+    plt.hist(our_money_as_list, range=(0, max(our_money_as_list) * 1.3), bins=20)
+
+    plt.subplot(numrows, 5, (numrows-1) * 5 + 4)
+    plt.ylabel("purch histo")
+    plt.hist(num_units_purchased_on_last_shopping_trip_as_list, range=(0, max(num_units_purchased_on_last_shopping_trip_as_list) * 1.3), bins=20)
+
+    plt.subplot(numrows, 5, (numrows-1) * 5 + 5)
+    plt.ylabel("avail histo")
+    plt.hist(num_units_available_on_last_shopping_trip_as_list, range=(0, max(num_units_available_on_last_shopping_trip_as_list) * 1.3), bins=20)
+
+
+    plt.show()
 
 agent_to_diagnose = 0
 
@@ -315,17 +340,39 @@ history_of_agents_price = []
 history_of_agents_stock_for_sale = []
 history_of_agents_goods_purchased = []
 history_of_agents_our_money = []
+all_prices_as_list = []
+stock_for_sale_as_list = []
+our_money_as_list = []
+num_units_purchased_on_last_shopping_trip_as_list = []
+num_units_available_on_last_shopping_trip_as_list = []
+
+
 
 print("glob.econ_iters_to_do_this_time :" + str(glob.econ_iters_to_do_this_time))
 for i in range(0, glob.econ_iters_to_do_this_time):
     iterate()
-    if math.fmod(i, 10000) == 0:
-        print(i)
     history_of_average_current_selling_price.append(average_current_selling_price())
     history_of_agents_price.append(agents[agent_to_diagnose].selling_price)
     history_of_agents_stock_for_sale.append(agents[agent_to_diagnose].stock_for_sale)
     history_of_agents_goods_purchased.append(agents[agent_to_diagnose].goods_purchased)
     history_of_agents_our_money.append(agents[agent_to_diagnose].our_money)
+    all_prices_as_list.clear()
+    stock_for_sale_as_list.clear()
+    our_money_as_list.clear()
+    num_units_purchased_on_last_shopping_trip_as_list.clear()
+    num_units_available_on_last_shopping_trip_as_list.clear()
+
+
+    for agent in agents:
+        all_prices_as_list.append(agent.selling_price)
+        stock_for_sale_as_list.append(agent.stock_for_sale)
+        our_money_as_list.append(agent.our_money)
+        num_units_purchased_on_last_shopping_trip_as_list.append(agent.num_units_purchased_on_last_shopping_trip)
+        num_units_available_on_last_shopping_trip_as_list.append(agent.num_units_available_on_last_shopping_trip)
+
+
+    if math.fmod(i, 10000) == 0:
+        print(i)
 
 do_all_plots()
 
