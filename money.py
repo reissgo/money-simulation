@@ -248,7 +248,6 @@ def modify_prices():
                     agent.sales_since_last_price_change = 0
 
 
-
 def consume():
     for agent in agents:
         agent.goods_purchased *= glob.one_day_half_life_multiplier
@@ -329,13 +328,16 @@ def do_all_plots():
 
 agent_to_diagnose = 0
 
+# create and initialise all agents
 agents = []
 
 for i in range(0, const.NUM_AGENTS):
     agents.append(AgentClass())
 
-history_of_average_current_selling_price = []
 
+
+# create arrays for storing histories of things we're going to monitor
+history_of_average_current_selling_price = []
 history_of_agents_price = []
 history_of_agents_stock_for_sale = []
 history_of_agents_goods_purchased = []
@@ -347,32 +349,39 @@ num_units_purchased_on_last_shopping_trip_as_list = []
 num_units_available_on_last_shopping_trip_as_list = []
 
 
-
-print("glob.econ_iters_to_do_this_time :" + str(glob.econ_iters_to_do_this_time))
 for i in range(0, glob.econ_iters_to_do_this_time):
     iterate()
+    # diagnostic counter on screen
+    if math.fmod(i, 10000) == 0:
+        print(i)
+
+    # keep running history of various things to plot at end
+
     history_of_average_current_selling_price.append(average_current_selling_price())
     history_of_agents_price.append(agents[agent_to_diagnose].selling_price)
     history_of_agents_stock_for_sale.append(agents[agent_to_diagnose].stock_for_sale)
     history_of_agents_goods_purchased.append(agents[agent_to_diagnose].goods_purchased)
     history_of_agents_our_money.append(agents[agent_to_diagnose].our_money)
-    all_prices_as_list.clear()
-    stock_for_sale_as_list.clear()
-    our_money_as_list.clear()
-    num_units_purchased_on_last_shopping_trip_as_list.clear()
-    num_units_available_on_last_shopping_trip_as_list.clear()
+
+    # go round loop again
 
 
-    for agent in agents:
-        all_prices_as_list.append(agent.selling_price)
-        stock_for_sale_as_list.append(agent.stock_for_sale)
-        our_money_as_list.append(agent.our_money)
-        num_units_purchased_on_last_shopping_trip_as_list.append(agent.num_units_purchased_on_last_shopping_trip)
-        num_units_available_on_last_shopping_trip_as_list.append(agent.num_units_available_on_last_shopping_trip)
+# clear arrays for upcoming histograms
 
+all_prices_as_list.clear()
+stock_for_sale_as_list.clear()
+our_money_as_list.clear()
+num_units_purchased_on_last_shopping_trip_as_list.clear()
+num_units_available_on_last_shopping_trip_as_list.clear()
 
-    if math.fmod(i, 10000) == 0:
-        print(i)
+# fill in arrays for histograms
+for agent in agents:
+    all_prices_as_list.append(agent.selling_price)
+    stock_for_sale_as_list.append(agent.stock_for_sale)
+    our_money_as_list.append(agent.our_money)
+    num_units_purchased_on_last_shopping_trip_as_list.append(agent.num_units_purchased_on_last_shopping_trip)
+    num_units_available_on_last_shopping_trip_as_list.append(agent.num_units_available_on_last_shopping_trip)
+
 
 do_all_plots()
 
