@@ -5,7 +5,7 @@ import globals as glob
 
 class AgentClass:
 
-    def setup_agent(self):
+    def __init__(self):
         self.goods_purchased = const.TYPICAL_GOODS_MADE_PER_DAY * utils.approx_one() / 2
         self.goods_purchased_in_latest_iteration = 0
         self.stock_for_sale = const.OPTIMAL_STOCK * utils.approx_one()
@@ -25,7 +25,4 @@ class AgentClass:
         self.num_units_available_on_last_shopping_trip = 0
         self.days_between_price_changes = utils.approx_one() * const.TYPICAL_DAYS_BETWEEN_PRICE_CHANGES
         self.days_between_purchases = utils.approx_one() * const.TYPICAL_DAYS_BETWEEN_PURCHASES
-
-    def __init__(self):
-        self.setup_agent()
 

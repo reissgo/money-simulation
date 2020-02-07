@@ -7,6 +7,8 @@ from agent_class_definition import AgentClass
 import random
 import math
 from matplotlib import pyplot as plt
+from tkinter import *
+
 
 
 def random_other_agent_with_stock_for_sale(buyer_idx): # done
@@ -326,15 +328,71 @@ def do_all_plots():
 
     plt.show()
 
+
+def clear_histories():
+    history_of_average_current_selling_price.clear()
+    history_of_agents_price.clear()
+    history_of_agents_stock_for_sale.clear()
+    history_of_agents_goods_purchased.clear()
+    history_of_agents_our_money.clear()
+    all_prices_as_list.clear()
+    stock_for_sale_as_list.clear()
+    our_money_as_list.clear()
+    num_units_purchased_on_last_shopping_trip_as_list.clear()
+    num_units_available_on_last_shopping_trip_as_list.clear()
+
+
+def run_model():
+    const.NUM_AGENTS_FOR_PRICE_COMPARISON = int(num_compare_box.get())
+    const.NUM_AGENTS = int(num_agents_box.get())
+    const.TYPICAL_STARTING_MONEY = float(num_startmoney_box.get())
+    glob.econ_iters_to_do_this_time = int(num_iters_box.get())
+
+    # create and initialise all agents
+    agents.clear()
+
+    for i in range(0, const.NUM_AGENTS):
+        agents.append(AgentClass())
+
+    clear_histories()
+    for i in range(0, glob.econ_iters_to_do_this_time):
+        iterate()
+        # diagnostic counter on screen
+        if math.fmod(i, 10000) == 0:
+            print(i)
+
+        # keep running history of various things to plot at end
+
+        history_of_average_current_selling_price.append(average_current_selling_price())
+        history_of_agents_price.append(agents[agent_to_diagnose].selling_price)
+        history_of_agents_stock_for_sale.append(agents[agent_to_diagnose].stock_for_sale)
+        history_of_agents_goods_purchased.append(agents[agent_to_diagnose].goods_purchased)
+        history_of_agents_our_money.append(agents[agent_to_diagnose].our_money)
+
+        # go round loop again
+
+    # clear arrays for upcoming histograms
+
+    all_prices_as_list.clear()
+    stock_for_sale_as_list.clear()
+    our_money_as_list.clear()
+    num_units_purchased_on_last_shopping_trip_as_list.clear()
+    num_units_available_on_last_shopping_trip_as_list.clear()
+
+    # fill in arrays for histograms
+    for agent in agents:
+        all_prices_as_list.append(agent.selling_price)
+        stock_for_sale_as_list.append(agent.stock_for_sale)
+        our_money_as_list.append(agent.our_money)
+        num_units_purchased_on_last_shopping_trip_as_list.append(agent.num_units_purchased_on_last_shopping_trip)
+        num_units_available_on_last_shopping_trip_as_list.append(agent.num_units_available_on_last_shopping_trip)
+
+    do_all_plots()
+
+
 agent_to_diagnose = 0
 
-# create and initialise all agents
-agents = []
-
-for i in range(0, const.NUM_AGENTS):
-    agents.append(AgentClass())
-
-
+agents=[]
 
 # create arrays for storing histories of things we're going to monitor
 history_of_average_current_selling_price = []
@@ -349,40 +407,46 @@ num_units_purchased_on_last_shopping_trip_as_list = []
 num_units_available_on_last_shopping_trip_as_list = []
 
 
-for i in range(0, glob.econ_iters_to_do_this_time):
-    iterate()
-    # diagnostic counter on screen
-    if math.fmod(i, 10000) == 0:
-        print(i)
 
-    # keep running history of various things to plot at end
+root = Tk()
 
-    history_of_average_current_selling_price.append(average_current_selling_price())
-    history_of_agents_price.append(agents[agent_to_diagnose].selling_price)
-    history_of_agents_stock_for_sale.append(agents[agent_to_diagnose].stock_for_sale)
-    history_of_agents_goods_purchased.append(agents[agent_to_diagnose].goods_purchased)
-    history_of_agents_our_money.append(agents[agent_to_diagnose].our_money)
+row = 0
+mylabel = Label(root, text="Welcome to Mick's Monetary Simulation")
+mylabel.grid(row=row, column=0)
+row += 1
 
-    # go round loop again
+num_agents_label = Label(root, text="Number of agents")
+num_agents_label.grid(row=row, column = 0)
+num_agents_box = Entry(root)
+num_agents_box.grid(row=row, column=1)
+num_agents_box.insert(0, const.NUM_AGENTS)
+row += 1
+
+num_compare_label = Label(root, text="Number to compare")
+num_compare_label.grid(row=row, column = 0)
+num_compare_box = Entry(root)
+num_compare_box.grid(row=row, column=1)
+num_compare_box.insert(0, const.NUM_AGENTS_FOR_PRICE_COMPARISON)
+row += 1
+
+num_startmoney_label = Label(root, text="Typical starting money")
+num_startmoney_label.grid(row=row, column = 0)
+num_startmoney_box = Entry(root)
+num_startmoney_box.grid(row=row, column=1)
+num_startmoney_box.insert(0, const.TYPICAL_STARTING_MONEY)
+row += 1
+
+num_iters_label = Label(root, text="Num iters to run for")
+num_iters_label.grid(row=row, column = 0)
+num_iters_box = Entry(root)
+num_iters_box.grid(row=row, column=1)
+num_iters_box.insert(0, glob.econ_iters_to_do_this_time)
+row += 1
+
+go_button = Button(root, text="Go!", command=run_model)
+go_button.grid(row=row, column=0)
 
 
-# clear arrays for upcoming histograms
-
-all_prices_as_list.clear()
-stock_for_sale_as_list.clear()
-our_money_as_list.clear()
-num_units_purchased_on_last_shopping_trip_as_list.clear()
-num_units_available_on_last_shopping_trip_as_list.clear()
-
-# fill in arrays for histograms
-for agent in agents:
-    all_prices_as_list.append(agent.selling_price)
-    stock_for_sale_as_list.append(agent.stock_for_sale)
-    our_money_as_list.append(agent.our_money)
-    num_units_purchased_on_last_shopping_trip_as_list.append(agent.num_units_purchased_on_last_shopping_trip)
-    num_units_available_on_last_shopping_trip_as_list.append(agent.num_units_available_on_last_shopping_trip)
-
-
-do_all_plots()
+root.mainloop()
 
 
