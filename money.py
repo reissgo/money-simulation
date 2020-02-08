@@ -343,10 +343,16 @@ def clear_histories():
 
 
 def run_model():
-    const.NUM_AGENTS_FOR_PRICE_COMPARISON = int(num_compare_box.get())
-    const.NUM_AGENTS = int(num_agents_box.get())
-    const.TYPICAL_STARTING_MONEY = float(num_startmoney_box.get())
-    glob.econ_iters_to_do_this_time = int(num_iters_box.get())
+
+    const.NUM_AGENTS_FOR_PRICE_COMPARISON       = int(var_widget_data_array["nc"]["box"].get())
+    const.NUM_AGENTS                            = int(var_widget_data_array["na"]["box"].get())
+    glob.econ_iters_to_do_this_time             = int(var_widget_data_array["ni"]["box"].get())
+    const.TYPICAL_STARTING_MONEY                = float(var_widget_data_array["sm"]["box"].get())
+    const.TYPICAL_GOODS_MADE_PER_DAY            = float(var_widget_data_array["gd"]["box"].get())
+    const.MAXIMUM_STOCK                         = float(var_widget_data_array["ms"]["box"].get())
+    const.OPTIMAL_STOCK                         = float(var_widget_data_array["os"]["box"].get())
+    const.TYPICAL_DAYS_BETWEEN_PRICE_CHANGES    = float(var_widget_data_array["pc"]["box"].get())
+    const.TYPICAL_DAYS_BETWEEN_PURCHASES        = float(var_widget_data_array["bp"]["box"].get())
 
     # create and initialise all agents
     agents.clear()
@@ -412,39 +418,34 @@ root = Tk()
 
 row = 0
 mylabel = Label(root, text="Welcome to Mick's Monetary Simulation")
-mylabel.grid(row=row, column=0)
+mylabel.grid(row=row, column=0, columnspan=2)
 row += 1
 
-num_agents_label = Label(root, text="Number of agents")
-num_agents_label.grid(row=row, column = 0)
-num_agents_box = Entry(root)
-num_agents_box.grid(row=row, column=1)
-num_agents_box.insert(0, const.NUM_AGENTS)
-row += 1
+var_widget_data_array = {
+                            "na": {"desc": "Number of agents",        "var": const.NUM_AGENTS},
+                            "sm": {"desc": "Typical starting money",  "var": const.TYPICAL_STARTING_MONEY},
+                            "nc": {"desc": "Number to compare",       "var": const.NUM_AGENTS_FOR_PRICE_COMPARISON},
+                            "ni": {"desc": "Num iters to run for",    "var": glob.econ_iters_to_do_this_time},
+                            "gd": {"desc": "Goods/Day",               "var": const.TYPICAL_GOODS_MADE_PER_DAY},
+                            "ms": {"desc": "Max stock",               "var": const.MAXIMUM_STOCK},
+                            "os": {"desc": "Opt stock",               "var": const.OPTIMAL_STOCK},
+                            "pc": {"desc": "Days / Price change",     "var": const.TYPICAL_DAYS_BETWEEN_PRICE_CHANGES},
+                            "bp": {"desc": "Days / Purch",            "var": const.TYPICAL_DAYS_BETWEEN_PURCHASES}
+                        }
 
-num_compare_label = Label(root, text="Number to compare")
-num_compare_label.grid(row=row, column = 0)
-num_compare_box = Entry(root)
-num_compare_box.grid(row=row, column=1)
-num_compare_box.insert(0, const.NUM_AGENTS_FOR_PRICE_COMPARISON)
-row += 1
+for key, value in var_widget_data_array.items():
+    label = Label(root, text=value["desc"], padx = 5, pady = 5)
+    label.grid(row=row, column=0)
+    box = Entry(root)
+    box.grid(row=row, column=1)
+    box.insert(0, value["var"])
+    value["lab"]=label
+    value["box"]=box
+    row += 1
 
-num_startmoney_label = Label(root, text="Typical starting money")
-num_startmoney_label.grid(row=row, column = 0)
-num_startmoney_box = Entry(root)
-num_startmoney_box.grid(row=row, column=1)
-num_startmoney_box.insert(0, const.TYPICAL_STARTING_MONEY)
 row += 1
-
-num_iters_label = Label(root, text="Num iters to run for")
-num_iters_label.grid(row=row, column = 0)
-num_iters_box = Entry(root)
-num_iters_box.grid(row=row, column=1)
-num_iters_box.insert(0, glob.econ_iters_to_do_this_time)
-row += 1
-
-go_button = Button(root, text="Go!", command=run_model)
-go_button.grid(row=row, column=0)
+go_button = Button(root, text="Go!", command=run_model,  bg='#00ff00')
+go_button.grid(row=row, column=0, columnspan=2)
 
 
 root.mainloop()
