@@ -344,6 +344,7 @@ def clear_histories():
 
 def run_model():
 
+    plt.close()
     const.NUM_AGENTS_FOR_PRICE_COMPARISON       = int(var_widget_data_array["nc"]["box"].get())
     const.NUM_AGENTS                            = int(var_widget_data_array["na"]["box"].get())
     glob.econ_iters_to_do_this_time             = int(var_widget_data_array["ni"]["box"].get())
@@ -446,6 +447,10 @@ for key, value in var_widget_data_array.items():
 row += 1
 go_button = Button(root, text="Go!", command=run_model,  bg='#00ff00')
 go_button.grid(row=row, column=0, columnspan=2)
+
+row += 1
+ex_button = Button(root, text="Exit", command=exit)
+ex_button.grid(row=row, column=0, columnspan=2)
 
 
 root.mainloop()
