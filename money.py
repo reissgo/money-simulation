@@ -7,6 +7,7 @@ from agent_class_definition import AgentClass
 import random
 import math
 from matplotlib import pyplot as plt
+import matplotlib.patches as patches
 from tkinter import *
 from tkinter.ttk import *  # https://stackoverflow.com/questions/33768577/tkinter-gui-with-progress-bar
 
@@ -297,7 +298,15 @@ def do_all_plots():
     axes.set_ylim([0, max(max(history_of_agents_stock_for_sale), const.MAXIMUM_STOCK * 1.2)])
     plt.text(0, const.MAXIMUM_STOCK, "Max stock")
     plt.plot(list(range(glob.econ_iters_to_do_this_time)), history_of_agents_stock_for_sale, ",")
-    plt.plot([0, glob.econ_iters_to_do_this_time], [const.MAXIMUM_STOCK, const.MAXIMUM_STOCK])
+    plt.plot([0, glob.econ_iters_to_do_this_time], [const.MAXIMUM_STOCK, const.MAXIMUM_STOCK],color="#00ff00")
+    start = -1
+    for i in range(0, glob.econ_iters_to_do_this_time):
+        if history_of_agents_stock_for_sale[i] >= const.MAXIMUM_STOCK:
+            if start == -1:
+                start = i
+        if start >= 0 and history_of_agents_stock_for_sale[i] < const.MAXIMUM_STOCK:
+           plt.plot([start, i], [const.MAXIMUM_STOCK, const.MAXIMUM_STOCK], color="#ff0000", linewidth=3)
+           start = -1
 
     plt.subplot(numrows,1,4)
     plt.ylabel(f"Agent[{agent_to_diagnose}] goods purchased")
@@ -355,6 +364,8 @@ def run_model():
     const.MAXIMUM_STOCK                         = float(var_widget_data_array["ms"]["box"].get())
     const.TYPICAL_DAYS_BETWEEN_PRICE_CHANGES    = float(var_widget_data_array["pc"]["box"].get())
     const.TYPICAL_DAYS_BETWEEN_PURCHASES        = float(var_widget_data_array["bp"]["box"].get())
+    const.TYPICAL_STARTING_PRICE                = float(var_widget_data_array["sp"]["box"].get())
+    glob.last_observed_purchase_price = const.TYPICAL_STARTING_PRICE
 
     # create and initialise all agents
     agents.clear()
@@ -433,7 +444,8 @@ var_widget_data_array = {
                             "gd": {"desc": "Typical goods made per Day",        "var": const.TYPICAL_GOODS_MADE_PER_DAY},
                             "ms": {"desc": "Maximum stock",                     "var": const.MAXIMUM_STOCK},
                             "pc": {"desc": "Typical days between price change", "var": const.TYPICAL_DAYS_BETWEEN_PRICE_CHANGES},
-                            "bp": {"desc": "Typical days between purchases",    "var": const.TYPICAL_DAYS_BETWEEN_PURCHASES}
+                            "bp": {"desc": "Typical days between purchases",    "var": const.TYPICAL_DAYS_BETWEEN_PURCHASES},
+                            "sp": {"desc": "Typical starting price",            "var": const.TYPICAL_STARTING_PRICE}
                         }
 
 for key, value in var_widget_data_array.items():
