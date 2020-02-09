@@ -6,6 +6,11 @@
 
 To be written
 
+## Requirements
+
+Python
+Matplotlib
+
 ## Usage
 
 python money.py
