@@ -8,8 +8,10 @@ To be written
 
 ## Requirements
 
-Python
-Matplotlib
+<ul>
+<li>Python</li>
+<li>Matplotlib</li>
+</ul>
 
 ## Usage
 
