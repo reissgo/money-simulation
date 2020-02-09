@@ -8,8 +8,7 @@ import random
 import math
 from matplotlib import pyplot as plt
 from tkinter import *
-
-
+from tkinter.ttk import *  # https://stackoverflow.com/questions/33768577/tkinter-gui-with-progress-bar
 
 def random_other_agent_with_stock_for_sale(buyer_idx): # done
     for ctr in range(1, 10):
@@ -364,9 +363,10 @@ def run_model():
     clear_histories()
     for i in range(0, glob.econ_iters_to_do_this_time):
         iterate()
-        # diagnostic counter on screen
-        if math.fmod(i, 10000) == 0:
-            print(i)
+
+        if math.fmod(i, glob.econ_iters_to_do_this_time/100) == 0:
+            progress['value'] = float(i)/glob.econ_iters_to_do_this_time*100.0
+            root.update_idletasks()
 
         # keep running history of various things to plot at end
 
@@ -419,38 +419,48 @@ root = Tk()
 
 row = 0
 mylabel = Label(root, text="Welcome to Mick's Monetary Simulation")
-mylabel.grid(row=row, column=0, columnspan=2)
+mylabel.grid(row=row, column=0, columnspan=2, padx = 5, pady = 15)
 row += 1
 
 var_widget_data_array = {
-                            "na": {"desc": "Number of agents",        "var": const.NUM_AGENTS},
-                            "sm": {"desc": "Typical starting money",  "var": const.TYPICAL_STARTING_MONEY},
-                            "nc": {"desc": "Number to compare",       "var": const.NUM_AGENTS_FOR_PRICE_COMPARISON},
-                            "ni": {"desc": "Num iters to run for",    "var": glob.econ_iters_to_do_this_time},
-                            "gd": {"desc": "Goods/Day",               "var": const.TYPICAL_GOODS_MADE_PER_DAY},
-                            "ms": {"desc": "Max stock",               "var": const.MAXIMUM_STOCK},
-                            "os": {"desc": "Opt stock",               "var": const.OPTIMAL_STOCK},
-                            "pc": {"desc": "Days / Price change",     "var": const.TYPICAL_DAYS_BETWEEN_PRICE_CHANGES},
-                            "bp": {"desc": "Days / Purch",            "var": const.TYPICAL_DAYS_BETWEEN_PURCHASES}
+                            "na": {"desc": "Number of agents",                  "var": const.NUM_AGENTS},
+                            "sm": {"desc": "Typical starting money",            "var": const.TYPICAL_STARTING_MONEY},
+                            "nc": {"desc": "Num agents for price comparison",   "var": const.NUM_AGENTS_FOR_PRICE_COMPARISON},
+                            "ni": {"desc": "Num iterations to run",             "var": glob.econ_iters_to_do_this_time},
+                            "gd": {"desc": "Typical goods made per Day",        "var": const.TYPICAL_GOODS_MADE_PER_DAY},
+                            "ms": {"desc": "Maximum stock",                     "var": const.MAXIMUM_STOCK},
+                            "os": {"desc": "Optimal stock",                     "var": const.OPTIMAL_STOCK},
+                            "pc": {"desc": "Typical days between price change", "var": const.TYPICAL_DAYS_BETWEEN_PRICE_CHANGES},
+                            "bp": {"desc": "Typical days between purchases",    "var": const.TYPICAL_DAYS_BETWEEN_PURCHASES}
                         }
 
 for key, value in var_widget_data_array.items():
-    label = Label(root, text=value["desc"], padx = 5, pady = 5)
-    label.grid(row=row, column=0)
+    label = Label(root, text=value["desc"])
+    label.grid(row=row, column=0, sticky=E, padx = 5, pady = 5)
     box = Entry(root)
-    box.grid(row=row, column=1)
+    box.grid(row=row, column=1, padx = 5, pady = 5)
     box.insert(0, value["var"])
     value["lab"]=label
     value["box"]=box
     row += 1
 
-row += 1
-go_button = Button(root, text="Go!", command=run_model,  bg='#00ff00')
-go_button.grid(row=row, column=0, columnspan=2)
 
+plabel = Label(root, text="Progress:")
+plabel.grid(row=row, column=0, sticky=E, padx=5, pady=5)
+progress=Progressbar(root,orient=HORIZONTAL,length=100,mode='determinate')
+progress.grid(row=row, column=1, padx=5, pady=15)
 row += 1
-ex_button = Button(root, text="Exit", command=exit)
-ex_button.grid(row=row, column=0, columnspan=2)
+my_frame_at_bottom=Frame(root)
+my_frame_at_bottom.grid(row=row, column=0, columnspan=2, padx = 5, pady = 5, sticky=W+E)
+
+go_button = Button(my_frame_at_bottom, text="Run!", command=run_model)
+go_button.grid(row=0, column=0, padx = 5, pady = 5, sticky=W+E)
+
+
+ex_button = Button(my_frame_at_bottom, text="Exit", command=exit)
+ex_button.grid(row=0, column=1, padx = 5, pady = 5, sticky=W+E)
+
+
 
 
 root.mainloop()
