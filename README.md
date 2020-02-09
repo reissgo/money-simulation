@@ -17,3 +17,8 @@ To be written
 
 python money.py
 
+## Contact
+
+reissgo [at] gmail [dot] com
+
+-- Michael Reiss
