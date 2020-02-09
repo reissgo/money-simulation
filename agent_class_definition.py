@@ -8,7 +8,7 @@ class AgentClass:
     def __init__(self):
         self.goods_purchased = const.TYPICAL_GOODS_MADE_PER_DAY * utils.approx_one() / 2
         self.goods_purchased_in_latest_iteration = 0
-        self.stock_for_sale = const.OPTIMAL_STOCK * utils.approx_one()
+        self.stock_for_sale = const.MAXIMUM_STOCK * utils.approx_one() / 2.0
         self.stock_sold_in_latest_iteration = 0
         self.goods_we_produce_per_day = const.TYPICAL_GOODS_MADE_PER_DAY * utils.approx_one()
         self.our_money = const.TYPICAL_STARTING_MONEY * utils.approx_one()

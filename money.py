@@ -192,6 +192,8 @@ def purchase():
 def produce():
     for agent in agents:
         agent.stock_for_sale += (agent.goods_we_produce_per_day / const.ITERATIONS_PER_DAY)
+        if agent.stock_for_sale > const.MAXIMUM_STOCK:
+            agent.stock_for_sale = const.MAXIMUM_STOCK
 
 
 def modify_prices():
@@ -201,6 +203,7 @@ def modify_prices():
             sales_per_day = agent.sales_since_last_price_change * const.ITERATIONS_PER_DAY / agent.iterations_since_last_price_change
             stock_growth_per_day = agent.goods_we_produce_per_day - sales_per_day
 
+            # calc days_till_stock_storage_empty and days_till_stock_storage_full
             if stock_growth_per_day > 0:
                 days_till_stock_storage_full = (const.MAXIMUM_STOCK - agent.stock_for_sale) / stock_growth_per_day
             else:
@@ -213,21 +216,21 @@ def modify_prices():
 
             if stock_growth_per_day > 0:  # stock room filling up
                 if days_till_stock_storage_full < 3:
-                    agent.selling_price *= 0.95
+                    agent.selling_price *= 0.85
                     agent.iterations_since_last_price_change = 0
                     agent.sales_since_last_price_change = 0
 
                 if 3 >= days_till_stock_storage_full > 5:           # // NEARLY FULL! - lower prices now!
-                    agent.selling_price *= 0.98
+                    agent.selling_price *= 0.96
                     agent.iterations_since_last_price_change = 0
                     agent.sales_since_last_price_change = 0
 
-                if 5 <= days_till_stock_storage_full < 10:          # // NEARLY FULL! - lower prices now!
+                if 5 <= days_till_stock_storage_full < 20:          # // NEARLY FULL! - lower prices now!
                     agent.selling_price *= 0.99
                     agent.iterations_since_last_price_change = 0
                     agent.sales_since_last_price_change = 0
 
-                if 20 > days_till_stock_storage_full < 40:          # // WON'T BEE FULL FOR AGES - raise prices!
+                if 20 >= days_till_stock_storage_full < 40:          # // WON'T BEE FULL FOR AGES - raise prices!
                     agent.selling_price *= 1.02
                     agent.iterations_since_last_price_change = 0
                     agent.sales_since_last_price_change = 0
@@ -291,9 +294,9 @@ def do_all_plots():
     plt.subplot(numrows,1,3)
     plt.ylabel(f"Agent[{agent_to_diagnose}] stock for sale")
     axes = plt.gca()
-    axes.set_ylim([0, const.MAXIMUM_STOCK * 5.4])
+    axes.set_ylim([0, max(max(history_of_agents_stock_for_sale), const.MAXIMUM_STOCK * 1.2)])
+    plt.text(0, const.MAXIMUM_STOCK, "Max stock")
     plt.plot(list(range(glob.econ_iters_to_do_this_time)), history_of_agents_stock_for_sale, ",")
-    plt.plot([0, glob.econ_iters_to_do_this_time], [const.OPTIMAL_STOCK, const.OPTIMAL_STOCK])
     plt.plot([0, glob.econ_iters_to_do_this_time], [const.MAXIMUM_STOCK, const.MAXIMUM_STOCK])
 
     plt.subplot(numrows,1,4)
@@ -350,7 +353,6 @@ def run_model():
     const.TYPICAL_STARTING_MONEY                = float(var_widget_data_array["sm"]["box"].get())
     const.TYPICAL_GOODS_MADE_PER_DAY            = float(var_widget_data_array["gd"]["box"].get())
     const.MAXIMUM_STOCK                         = float(var_widget_data_array["ms"]["box"].get())
-    const.OPTIMAL_STOCK                         = float(var_widget_data_array["os"]["box"].get())
     const.TYPICAL_DAYS_BETWEEN_PRICE_CHANGES    = float(var_widget_data_array["pc"]["box"].get())
     const.TYPICAL_DAYS_BETWEEN_PURCHASES        = float(var_widget_data_array["bp"]["box"].get())
 
@@ -365,7 +367,7 @@ def run_model():
         iterate()
 
         if math.fmod(i, glob.econ_iters_to_do_this_time/100) == 0:
-            progress['value'] = float(i)/glob.econ_iters_to_do_this_time*100.0
+            progress_bar['value'] = float(i) / glob.econ_iters_to_do_this_time * 100.0
             root.update_idletasks()
 
         # keep running history of various things to plot at end
@@ -399,7 +401,7 @@ def run_model():
 
 agent_to_diagnose = 0
 
-agents=[]
+agents = []
 
 # create arrays for storing histories of things we're going to monitor
 history_of_average_current_selling_price = []
@@ -416,10 +418,11 @@ num_units_available_on_last_shopping_trip_as_list = []
 
 
 root = Tk()
+root.title("Agent Based Model")
 
 row = 0
-mylabel = Label(root, text="Welcome to Mick's Monetary Simulation")
-mylabel.grid(row=row, column=0, columnspan=2, padx = 5, pady = 15)
+welcome_text_widget = Label(root, text="Welcome to Mick's Monetary Simulation")
+welcome_text_widget.grid(row=row, column=0, columnspan=2, padx=5, pady=15)
 row += 1
 
 var_widget_data_array = {
@@ -429,39 +432,34 @@ var_widget_data_array = {
                             "ni": {"desc": "Num iterations to run",             "var": glob.econ_iters_to_do_this_time},
                             "gd": {"desc": "Typical goods made per Day",        "var": const.TYPICAL_GOODS_MADE_PER_DAY},
                             "ms": {"desc": "Maximum stock",                     "var": const.MAXIMUM_STOCK},
-                            "os": {"desc": "Optimal stock",                     "var": const.OPTIMAL_STOCK},
                             "pc": {"desc": "Typical days between price change", "var": const.TYPICAL_DAYS_BETWEEN_PRICE_CHANGES},
                             "bp": {"desc": "Typical days between purchases",    "var": const.TYPICAL_DAYS_BETWEEN_PURCHASES}
                         }
 
 for key, value in var_widget_data_array.items():
     label = Label(root, text=value["desc"])
-    label.grid(row=row, column=0, sticky=E, padx = 5, pady = 5)
-    box = Entry(root)
-    box.grid(row=row, column=1, padx = 5, pady = 5)
-    box.insert(0, value["var"])
-    value["lab"]=label
-    value["box"]=box
+    label.grid(row=row, column=0, sticky=E, padx=5, pady=5)
+    number_entry_box = Entry(root)
+    number_entry_box.grid(row=row, column=1, padx=5, pady=5)
+    number_entry_box.insert(0, value["var"])
+    value["lab"] = label
+    value["box"] = number_entry_box
     row += 1
 
-
-plabel = Label(root, text="Progress:")
-plabel.grid(row=row, column=0, sticky=E, padx=5, pady=5)
-progress=Progressbar(root,orient=HORIZONTAL,length=100,mode='determinate')
-progress.grid(row=row, column=1, padx=5, pady=15)
+progress_label = Label(root, text="Progress:")
+progress_label.grid(row=row, column=0, sticky=E, padx=5, pady=5)
+progress_bar = Progressbar(root, orient=HORIZONTAL, length=100, mode='determinate')
+progress_bar.grid(row=row, column=1, padx=5, pady=15)
 row += 1
-my_frame_at_bottom=Frame(root)
-my_frame_at_bottom.grid(row=row, column=0, columnspan=2, padx = 5, pady = 5, sticky=W+E)
 
-go_button = Button(my_frame_at_bottom, text="Run!", command=run_model)
-go_button.grid(row=0, column=0, padx = 5, pady = 5, sticky=W+E)
+my_frame_at_bottom = Frame(root)
+my_frame_at_bottom.grid(row=row, column=0, columnspan=2, padx=5, pady=5, sticky=W+E)
 
+run_button = Button(my_frame_at_bottom, text="Run!", command=run_model)
+run_button.grid(row=0, column=0, padx=5, pady=5, sticky=W + E)
 
 ex_button = Button(my_frame_at_bottom, text="Exit", command=exit)
-ex_button.grid(row=0, column=1, padx = 5, pady = 5, sticky=W+E)
-
-
-
+ex_button.grid(row=0, column=1, padx=5, pady=5, sticky=W+E)
 
 root.mainloop()
 
