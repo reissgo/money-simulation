@@ -460,11 +460,11 @@ welcome_text_widget.grid(row=row, column=0, columnspan=2, padx=5, pady=15)
 row += 1
 
 graphs_to_show =    {
-                        "avsp": {"desc": "Av sell price"},
-                          "sp": {"desc": "Sell price"},
-                         "sfs": {"desc": "Stock for sale"},
-                          "gp": {"desc": "Goods purchased"},
-                         "mon": {"desc": "Our money"}
+                        "avsp": {"desc": "Av sell price",       "default": 1},
+                          "sp": {"desc": "Sell price",          "default": 1},
+                         "sfs": {"desc": "Stock for sale",      "default": 0},
+                          "gp": {"desc": "Goods purchased",     "default": 1},
+                         "mon": {"desc": "Our money",           "default": 1}
                     }
 
 var_widget_data_array = {
@@ -490,13 +490,25 @@ for key, value in var_widget_data_array.items():
     value["box"] = number_entry_box
     row += 1
 
+# make the graphs to display checkboxes
+frame_for_checkboxes = LabelFrame(root,text="Graphs to display")
+frame_for_checkboxes.grid(row=row, column=0, columnspan=2, padx=5, pady=5, sticky=W+E)
 
+cb_row = 1
 for key, value in graphs_to_show.items():
     value["show"] = IntVar()
-    check_box = Checkbutton(root, text=value["desc"], variable=value["show"])
-    check_box.grid(row=row, column=1, padx=5, pady=5)
-    row += 1
+    value["show"].set(value["default"])
 
+    label=Label(frame_for_checkboxes, text=value["desc"])
+    label.grid(row=cb_row, column=0, sticky=E, padx=5, pady=5)
+
+    check_box = Checkbutton(frame_for_checkboxes, variable=value["show"])
+    check_box.grid(row=cb_row, column=1, padx=5, pady=5)
+
+    cb_row += 1
+
+
+row += 1
 
 # progress bar and buttons
 progress_label = Label(root, text="Progress:")
