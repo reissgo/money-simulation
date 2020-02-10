@@ -277,45 +277,65 @@ def iterate():
 
 def do_all_plots():
 
+    # prep
     plt.rcParams["figure.figsize"] = (18,12)
 
     plt.subplots_adjust(top=.98)
     plt.subplots_adjust(bottom=.02)
 
-    numrows = 6
 
-    plt.subplot(numrows,1,1)
-    plt.ylabel("Average selling price")
-    plt.plot(list(range(glob.econ_iters_to_do_this_time)), history_of_average_current_selling_price, ",")
+    numrows = 0
+    for val in graphs_to_show.values():
+        if val["show"].get():
+            numrows += 1
 
-    plt.subplot(numrows,1,2)
-    plt.ylabel(f"Agent[{agent_to_diagnose}] selling price")
-    plt.plot(list(range(glob.econ_iters_to_do_this_time)), history_of_agents_price, ",")
+    numrows += 1  # for the row of histograms at the bottom
 
-    plt.subplot(numrows,1,3)
-    plt.ylabel(f"Agent[{agent_to_diagnose}] stock for sale")
-    axes = plt.gca()
-    axes.set_ylim([0, max(max(history_of_agents_stock_for_sale), const.MAXIMUM_STOCK * 1.2)])
-    plt.text(0, const.MAXIMUM_STOCK, "Max stock")
-    plt.plot(list(range(glob.econ_iters_to_do_this_time)), history_of_agents_stock_for_sale, ",")
-    plt.plot([0, glob.econ_iters_to_do_this_time], [const.MAXIMUM_STOCK, const.MAXIMUM_STOCK],color="#00ff00")
-    start = -1
-    for i in range(0, glob.econ_iters_to_do_this_time):
-        if history_of_agents_stock_for_sale[i] >= const.MAXIMUM_STOCK:
-            if start == -1:
-                start = i
-        if start >= 0 and history_of_agents_stock_for_sale[i] < const.MAXIMUM_STOCK:
-           plt.plot([start, i], [const.MAXIMUM_STOCK, const.MAXIMUM_STOCK], color="#ff0000", linewidth=3)
-           start = -1
+    current_row = 1
 
-    plt.subplot(numrows,1,4)
-    plt.ylabel(f"Agent[{agent_to_diagnose}] goods purchased")
-    plt.plot(list(range(glob.econ_iters_to_do_this_time)), history_of_agents_goods_purchased, ",")
+    if graphs_to_show["avsp"]["show"].get():
+        plt.subplot(numrows,1,current_row)
+        plt.ylabel("Average selling price")
+        plt.plot(list(range(glob.econ_iters_to_do_this_time)), history_of_average_current_selling_price, ",")
+        current_row += 1
 
-    plt.subplot(numrows,1,5)
-    plt.ylabel(f"Agent[{agent_to_diagnose}] our money")
-    plt.plot(list(range(glob.econ_iters_to_do_this_time)), history_of_agents_our_money, ",")
+    if graphs_to_show["sp"]["show"].get():
+        plt.subplot(numrows,1,current_row)
+        plt.ylabel(f"Agent[{agent_to_diagnose}] selling price")
+        plt.plot(list(range(glob.econ_iters_to_do_this_time)), history_of_agents_price, ",")
+        current_row += 1
 
+    if graphs_to_show["sfs"]["show"].get():
+        plt.subplot(numrows,1,current_row)
+        plt.ylabel(f"Agent[{agent_to_diagnose}] stock for sale")
+        axes = plt.gca()
+        axes.set_ylim([0, max(max(history_of_agents_stock_for_sale), const.MAXIMUM_STOCK * 1.2)])
+        plt.text(0, const.MAXIMUM_STOCK, "Max stock")
+        plt.plot(list(range(glob.econ_iters_to_do_this_time)), history_of_agents_stock_for_sale, ",")
+        plt.plot([0, glob.econ_iters_to_do_this_time], [const.MAXIMUM_STOCK, const.MAXIMUM_STOCK],color="#00ff00")
+        start = -1
+        for i in range(0, glob.econ_iters_to_do_this_time):
+            if history_of_agents_stock_for_sale[i] >= const.MAXIMUM_STOCK:
+                if start == -1:
+                    start = i
+            if start >= 0 and history_of_agents_stock_for_sale[i] < const.MAXIMUM_STOCK:
+               plt.plot([start, i], [const.MAXIMUM_STOCK, const.MAXIMUM_STOCK], color="#ff0000", linewidth=3)
+               start = -1
+        current_row += 1
+
+    if graphs_to_show["gp"]["show"].get():
+        plt.subplot(numrows,1,current_row)
+        plt.ylabel(f"Agent[{agent_to_diagnose}] goods purchased")
+        plt.plot(list(range(glob.econ_iters_to_do_this_time)), history_of_agents_goods_purchased, ",")
+        current_row += 1
+
+    if graphs_to_show["mon"]["show"].get():
+        plt.subplot(numrows,1,current_row)
+        plt.ylabel(f"Agent[{agent_to_diagnose}] our money")
+        plt.plot(list(range(glob.econ_iters_to_do_this_time)), history_of_agents_our_money, ",")
+        current_row += 1
+
+    # histograms
     plt.subplot(numrows, 5, (numrows-1) * 5 + 1)
     plt.ylabel("Sell Price histo")
     plt.hist(all_prices_as_list, range=(0, max(all_prices_as_list) * 1.3), bins=20)
@@ -410,6 +430,9 @@ def run_model():
     do_all_plots()
 
 
+######################################################################################################################
+######################################################################################################################
+
 agent_to_diagnose = 0
 
 agents = []
@@ -436,6 +459,14 @@ welcome_text_widget = Label(root, text="Welcome to Mick's Monetary Simulation")
 welcome_text_widget.grid(row=row, column=0, columnspan=2, padx=5, pady=15)
 row += 1
 
+graphs_to_show =    {
+                        "avsp": {"desc": "Av sell price"},
+                          "sp": {"desc": "Sell price"},
+                         "sfs": {"desc": "Stock for sale"},
+                          "gp": {"desc": "Goods purchased"},
+                         "mon": {"desc": "Our money"}
+                    }
+
 var_widget_data_array = {
                             "na": {"desc": "Number of agents",                  "var": const.NUM_AGENTS},
                             "sm": {"desc": "Typical starting money",            "var": const.TYPICAL_STARTING_MONEY},
@@ -448,6 +479,7 @@ var_widget_data_array = {
                             "sp": {"desc": "Typical starting price",            "var": const.TYPICAL_STARTING_PRICE}
                         }
 
+# make the label + text input fields
 for key, value in var_widget_data_array.items():
     label = Label(root, text=value["desc"])
     label.grid(row=row, column=0, sticky=E, padx=5, pady=5)
@@ -458,6 +490,15 @@ for key, value in var_widget_data_array.items():
     value["box"] = number_entry_box
     row += 1
 
+
+for key, value in graphs_to_show.items():
+    value["show"] = IntVar()
+    check_box = Checkbutton(root, text=value["desc"], variable=value["show"])
+    check_box.grid(row=row, column=1, padx=5, pady=5)
+    row += 1
+
+
+# progress bar and buttons
 progress_label = Label(root, text="Progress:")
 progress_label.grid(row=row, column=0, sticky=E, padx=5, pady=5)
 progress_bar = Progressbar(root, orient=HORIZONTAL, length=100, mode='determinate')

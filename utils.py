@@ -17,5 +17,3 @@ def random_agent():
     return randint(0, const.NUM_AGENTS-1)
 
 
-def plus_or_minus_one():
-    return -1 + (randint(0, 1) * 2)
