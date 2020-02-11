@@ -381,16 +381,9 @@ def do_all_plots():
     plt.show()
 
 def clear_histories():
-    history_of_average_current_selling_price.clear()
-    history_of_agents_price.clear()
-    history_of_agents_stock_for_sale.clear()
-    history_of_agents_goods_purchased.clear()
-    history_of_agents_our_money.clear()
-    history_of_agents_well_money.clear()
-    history_of_agents_well_coms.clear()
-    history_of_agents_well_money_plus_cons.clear()
-    history_of_agents_days_to_full.clear()
-    history_of_agents_days_to_empty.clear()
+    for key,value in history_list.items():
+        history_list[key]["list"].clear()
+
     all_prices_as_list.clear()
     stock_for_sale_as_list.clear()
     our_money_as_list.clear()
@@ -437,8 +430,6 @@ def run_model():
         history_of_agents_well_money.append(raw_wellbeing_from_savings(agents[agent_to_diagnose].our_money))
         history_of_agents_well_coms.append(wellbeing_from_consumption(agent_to_diagnose,0))
         history_of_agents_well_money_plus_cons.append(wellbeing_from_consumption_and_savings(agent_to_diagnose,0,0))
-        assert(agents[agent_to_diagnose].days_till_stock_storage_full != 0)
-        assert(agents[agent_to_diagnose].days_till_stock_storage_empty != 0)
         history_of_agents_days_to_full.append(agents[agent_to_diagnose].days_till_stock_storage_full)
         history_of_agents_days_to_empty.append(agents[agent_to_diagnose].days_till_stock_storage_empty)
 
@@ -467,6 +458,7 @@ agents = []
 # create arrays for storing histories of things we're going to monitor
 
 # declare "history of" arrays
+
 history_of_average_current_selling_price = []
 history_of_agents_price = []
 history_of_agents_stock_for_sale = []
@@ -477,6 +469,22 @@ history_of_agents_well_coms = []
 history_of_agents_well_money_plus_cons = []
 history_of_agents_days_to_full = []
 history_of_agents_days_to_empty = []
+
+# This history_list looks very similar to graphs_to_show - but not the same because some graphs may display multiple
+# histories at the same time - so the number of items in the two lists may not be the same
+
+history_list = {
+                "acsp": {"list": history_of_average_current_selling_price,  "desc": "Av current selling price"},
+                  "ap": {"list": history_of_agents_price,                   "desc": "agents_price"},
+                 "sfs": {"list": history_of_agents_stock_for_sale,          "desc": "agents_stock_for_sale"},
+                  "gp": {"list": history_of_agents_goods_purchased,         "desc": "agents_goods_purchased"},
+                  "om": {"list": history_of_agents_our_money,               "desc": "agents_our_money"},
+                  "wm": {"list": history_of_agents_well_money,              "desc": "agents_well_money"},
+                  "wc": {"list": history_of_agents_well_coms,               "desc": "agents_well_coms"},
+                 "wmc": {"list": history_of_agents_well_money_plus_cons,    "desc": "well_money_plus_cons"},
+                 "dtf": {"list": history_of_agents_days_to_full,            "desc": "days_to_full"},
+                 "dte": {"list": history_of_agents_days_to_empty,           "desc": "days_to_empty"}
+                }
 
 # declare arrays for histograms
 all_prices_as_list = []
