@@ -191,30 +191,25 @@ def modify_prices():
     for agent in agents:
 
         agent.days_till_stock_storage_full = -1
-        agent.days_till_stock_storage_full = -1
+        agent.days_till_stock_storage_empty = -1
 
+        #########
+        sales_per_day_as_measured_since_last_price_change = agent.sales_since_last_price_change * const.ITERATIONS_PER_DAY / max(1,
+                                                                                             agent.iterations_since_last_price_change)
+        stock_growth_per_day = agent.goods_we_produce_per_day - sales_per_day_as_measured_since_last_price_change
 
+        # calc days_till_stock_storage_full/empty - only really needed after the "if" but calc here for diagnostics
+        if stock_growth_per_day > 0:
+            agent.days_till_stock_storage_full = (const.MAXIMUM_STOCK - agent.stock_for_sale) / stock_growth_per_day
+        else:
+            agent.days_till_stock_storage_full = const.INIFINITE
 
+        if stock_growth_per_day < 0:
+            agent.days_till_stock_storage_empty = agent.stock_for_sale / (-1 * stock_growth_per_day)
+        else:
+            agent.days_till_stock_storage_empty = const.INIFINITE
 
         if agent.iterations_since_last_price_change > (agent.days_between_price_changes * const.ITERATIONS_PER_DAY):
-
-            #########
-            sales_per_day = agent.sales_since_last_price_change * const.ITERATIONS_PER_DAY / max(1,
-                                                                                                 agent.iterations_since_last_price_change)
-            stock_growth_per_day = agent.goods_we_produce_per_day - sales_per_day
-
-            # calc days_till_stock_storage_empty and days_till_stock_storage_full
-            if stock_growth_per_day > 0:
-                agent.days_till_stock_storage_full = (const.MAXIMUM_STOCK - agent.stock_for_sale) / stock_growth_per_day
-            else:
-                agent.days_till_stock_storage_full = const.INIFINITE
-
-            if stock_growth_per_day < 0:
-                agent.days_till_stock_storage_empty = agent.stock_for_sale / (-1 * stock_growth_per_day)
-            else:
-                agent.days_till_stock_storage_empty = const.INIFINITE
-            #########
-
 
             if stock_growth_per_day > 0:  # stock room filling up
                 if agent.days_till_stock_storage_full < 3:
@@ -324,6 +319,8 @@ def do_all_plots():
     if graphs_to_show["dtfe"]["show"].get():
         plt.subplot(numrows,1,current_row)
         plt.ylabel(f"Agent[{agent_to_diagnose}]\ndays till stock full/empty")
+        axes = plt.gca()
+        axes.set_ylim([0, 25])
         plt.plot(list(range(glob.econ_iters_to_do_this_time)), history_of_agents_days_to_full, ",", color="#ff0000")
         plt.plot(list(range(glob.econ_iters_to_do_this_time)), history_of_agents_days_to_empty, ",", color="#00ff00")
         current_row += 1
@@ -440,6 +437,8 @@ def run_model():
         history_of_agents_well_money.append(raw_wellbeing_from_savings(agents[agent_to_diagnose].our_money))
         history_of_agents_well_coms.append(wellbeing_from_consumption(agent_to_diagnose,0))
         history_of_agents_well_money_plus_cons.append(wellbeing_from_consumption_and_savings(agent_to_diagnose,0,0))
+        assert(agents[agent_to_diagnose].days_till_stock_storage_full != 0)
+        assert(agents[agent_to_diagnose].days_till_stock_storage_empty != 0)
         history_of_agents_days_to_full.append(agents[agent_to_diagnose].days_till_stock_storage_full)
         history_of_agents_days_to_empty.append(agents[agent_to_diagnose].days_till_stock_storage_empty)
 
@@ -507,12 +506,12 @@ row += 1
 graphs_to_show = {
                         "avsp": {"desc": "Av sell price",           "default": 1},
                           "sp": {"desc": "Sell price",              "default": 1},
-                         "sfs": {"desc": "Stock for sale",          "default": 0},
+                         "sfs": {"desc": "Stock for sale",          "default": 1},
                           "gp": {"desc": "Goods purchased",         "default": 1},
-                         "mon": {"desc": "Our money",               "default": 1},
-                     "wellmon": {"desc": "Wellbeing money",         "default": 1},
-                     "wellcon": {"desc": "Wellbeing con",           "default": 1},
-                  "wellmoncon": {"desc": "Wellbeing money + con",   "default": 1},
+                         "mon": {"desc": "Our money",               "default": 0},
+                     "wellmon": {"desc": "Wellbeing money",         "default": 0},
+                     "wellcon": {"desc": "Wellbeing con",           "default": 0},
+                  "wellmoncon": {"desc": "Wellbeing money + con",   "default": 0},
                         "dtfe": {"desc": "Days till empty / full",  "default": 1},
 
 }
