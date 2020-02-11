@@ -18,7 +18,6 @@ def random_other_agent_with_stock_for_sale(buyer_idx): # done
             return ans
     return const.NO_AGENT_FOUND
 
-
 def average_current_selling_price():
     average = 0
 
@@ -28,21 +27,6 @@ def average_current_selling_price():
     average /= const.NUM_AGENTS
 
     return average
-
-
-def raw_wellbeing_from_savings(savings):
-    x = savings / (average_current_selling_price() * const.TYPICAL_GOODS_MADE_PER_DAY)
-    return -.9 + 2 / (1 + math.exp(-x)) + x * .05
-
-
-def wellbeing_from_savings(agent_number, mod):
-    agents[agent_number].num_days_savings_will_last = (agents[agent_number].our_money + mod) / \
-            (average_current_selling_price() * const.TYPICAL_GOODS_MADE_PER_DAY)
-
-    x = agents[agent_number].num_days_savings_will_last  # storing in 'x' to make the following equation look nicer
-
-    return -.9 + 2 / (1 + math.exp(-x)) + x * .05
-
 
 def select_agent_to_buy_from(purchasing_agent_idx):
     # collect SIZE_OF_SELECTION_LIST random other agents
@@ -90,15 +74,23 @@ def select_agent_to_buy_from(purchasing_agent_idx):
 
     ###############################################
 
+def raw_wellbeing_from_savings(savings):
+    x = savings / (average_current_selling_price() * const.TYPICAL_GOODS_MADE_PER_DAY)
+    return -.9 + 2 / (1 + math.exp(-x)) + x * .05
+
+def wellbeing_from_savings(agent_number, mod):
+    agents[agent_number].num_days_savings_will_last = (agents[agent_number].our_money + mod) / (average_current_selling_price() * const.TYPICAL_GOODS_MADE_PER_DAY)
+
+    x = agents[agent_number].num_days_savings_will_last  # storing in 'x' to make the following equation look nicer
+
+    return -.9 + 2 / (1 + math.exp(-x)) + x * .05
 
 def wellbeing_from_consumption(agent_number, mod):
     x = agents[agent_number].goods_purchased + mod
     return x*.05+1/(1+math.exp(-(x-6)*1))
 
-
 def wellbeing_from_consumption_and_savings(agent_number, modcon, modsav):
     return wellbeing_from_consumption(agent_number, modcon) * wellbeing_from_savings(agent_number, modsav)
-
 
 def purchase():
     shuffled_agent_index_list = list(range(0, const.NUM_AGENTS))
@@ -189,60 +181,69 @@ def purchase():
         else:
             agents[buying_agent_idx].iterations_since_last_purchase += 1
 
-
 def produce():
     for agent in agents:
         agent.stock_for_sale += (agent.goods_we_produce_per_day / const.ITERATIONS_PER_DAY)
         if agent.stock_for_sale > const.MAXIMUM_STOCK:
             agent.stock_for_sale = const.MAXIMUM_STOCK
 
-
 def modify_prices():
     for agent in agents:
+
+        agent.days_till_stock_storage_full = -1
+        agent.days_till_stock_storage_full = -1
+
+
+
+
         if agent.iterations_since_last_price_change > (agent.days_between_price_changes * const.ITERATIONS_PER_DAY):
-            assert agent.iterations_since_last_price_change > 0
-            sales_per_day = agent.sales_since_last_price_change * const.ITERATIONS_PER_DAY / agent.iterations_since_last_price_change
+
+            #########
+            sales_per_day = agent.sales_since_last_price_change * const.ITERATIONS_PER_DAY / max(1,
+                                                                                                 agent.iterations_since_last_price_change)
             stock_growth_per_day = agent.goods_we_produce_per_day - sales_per_day
 
             # calc days_till_stock_storage_empty and days_till_stock_storage_full
             if stock_growth_per_day > 0:
-                days_till_stock_storage_full = (const.MAXIMUM_STOCK - agent.stock_for_sale) / stock_growth_per_day
+                agent.days_till_stock_storage_full = (const.MAXIMUM_STOCK - agent.stock_for_sale) / stock_growth_per_day
             else:
-                days_till_stock_storage_full = const.INIFINITE
+                agent.days_till_stock_storage_full = const.INIFINITE
 
             if stock_growth_per_day < 0:
-                days_till_stock_storage_empty = agent.stock_for_sale / (-1 * stock_growth_per_day)
+                agent.days_till_stock_storage_empty = agent.stock_for_sale / (-1 * stock_growth_per_day)
             else:
-                days_till_stock_storage_empty = const.INIFINITE
+                agent.days_till_stock_storage_empty = const.INIFINITE
+            #########
+
 
             if stock_growth_per_day > 0:  # stock room filling up
-                if days_till_stock_storage_full < 3:
+                if agent.days_till_stock_storage_full < 3:
                     agent.selling_price *= 0.85
                     agent.iterations_since_last_price_change = 0
                     agent.sales_since_last_price_change = 0
 
-                if 3 >= days_till_stock_storage_full > 5:           # // NEARLY FULL! - lower prices now!
+                if 3 >= agent.days_till_stock_storage_full > 5:           # // NEARLY FULL! - lower prices now!
                     agent.selling_price *= 0.96
                     agent.iterations_since_last_price_change = 0
                     agent.sales_since_last_price_change = 0
 
-                if 5 <= days_till_stock_storage_full < 20:          # // NEARLY FULL! - lower prices now!
+                if 5 <= agent.days_till_stock_storage_full < 20:          # // NEARLY FULL! - lower prices now!
                     agent.selling_price *= 0.99
                     agent.iterations_since_last_price_change = 0
                     agent.sales_since_last_price_change = 0
 
-                if 20 >= days_till_stock_storage_full < 40:          # // WON'T BEE FULL FOR AGES - raise prices!
+                if 20 >= agent.days_till_stock_storage_full < 40:          # // WON'T BEE FULL FOR AGES - raise prices!
                     agent.selling_price *= 1.02
                     agent.iterations_since_last_price_change = 0
                     agent.sales_since_last_price_change = 0
 
-                if days_till_stock_storage_full >= 40:              # // WON'T BEE FULL FOR AGES - raise prices!
+                if agent.days_till_stock_storage_full >= 40:              # // WON'T BEE FULL FOR AGES - raise prices!
                     agent.selling_price *= 1.03
                     agent.iterations_since_last_price_change = 0
                     agent.sales_since_last_price_change = 0
 
             if stock_growth_per_day < 0: # // stock room emptying
-                if days_till_stock_storage_empty < 3:           # // NEARLY
+                if agent.days_till_stock_storage_empty < 3:           # // NEARLY
                     agent.selling_price *= 1.1
                     agent.iterations_since_last_price_change = 0
                     agent.sales_since_last_price_change = 0
@@ -252,11 +253,9 @@ def modify_prices():
                     agent.iterations_since_last_price_change = 0
                     agent.sales_since_last_price_change = 0
 
-
 def consume():
     for agent in agents:
         agent.goods_purchased *= glob.one_day_half_life_multiplier
-
 
 def iterate():
     for agent in agents:
@@ -274,7 +273,6 @@ def iterate():
         agent.iterations_since_last_purchase += 1
         agent.iterations_since_last_price_change += 1
 
-
 def do_all_plots():
 
     # prep
@@ -283,16 +281,16 @@ def do_all_plots():
     plt.subplots_adjust(top=.98)
     plt.subplots_adjust(bottom=.02)
 
-
+    # count selected graphs
     numrows = 0
     for val in graphs_to_show.values():
         if val["show"].get():
             numrows += 1
 
     numrows += 1  # for the row of histograms at the bottom
-
     current_row = 1
 
+    # show selected graphs
     if graphs_to_show["avsp"]["show"].get():
         plt.subplot(numrows,1,current_row)
         plt.ylabel("Average selling price")
@@ -301,13 +299,13 @@ def do_all_plots():
 
     if graphs_to_show["sp"]["show"].get():
         plt.subplot(numrows,1,current_row)
-        plt.ylabel(f"Agent[{agent_to_diagnose}] selling price")
+        plt.ylabel(f"Agent[{agent_to_diagnose}]\nselling price")
         plt.plot(list(range(glob.econ_iters_to_do_this_time)), history_of_agents_price, ",")
         current_row += 1
 
     if graphs_to_show["sfs"]["show"].get():
         plt.subplot(numrows,1,current_row)
-        plt.ylabel(f"Agent[{agent_to_diagnose}] stock for sale")
+        plt.ylabel(f"Agent[{agent_to_diagnose}]\nstock for sale")
         axes = plt.gca()
         axes.set_ylim([0, max(max(history_of_agents_stock_for_sale), const.MAXIMUM_STOCK * 1.2)])
         plt.text(0, const.MAXIMUM_STOCK, "Max stock")
@@ -323,21 +321,48 @@ def do_all_plots():
                start = -1
         current_row += 1
 
+    if graphs_to_show["dtfe"]["show"].get():
+        plt.subplot(numrows,1,current_row)
+        plt.ylabel(f"Agent[{agent_to_diagnose}]\ndays till stock full/empty")
+        plt.plot(list(range(glob.econ_iters_to_do_this_time)), history_of_agents_days_to_full, ",", color="#ff0000")
+        plt.plot(list(range(glob.econ_iters_to_do_this_time)), history_of_agents_days_to_empty, ",", color="#00ff00")
+        current_row += 1
+
     if graphs_to_show["gp"]["show"].get():
         plt.subplot(numrows,1,current_row)
-        plt.ylabel(f"Agent[{agent_to_diagnose}] goods purchased")
+        plt.ylabel(f"Agent[{agent_to_diagnose}]\ngoods purchased")
         plt.plot(list(range(glob.econ_iters_to_do_this_time)), history_of_agents_goods_purchased, ",")
         current_row += 1
 
     if graphs_to_show["mon"]["show"].get():
         plt.subplot(numrows,1,current_row)
-        plt.ylabel(f"Agent[{agent_to_diagnose}] our money")
+        plt.ylabel(f"Agent[{agent_to_diagnose}]\nour money")
         plt.plot(list(range(glob.econ_iters_to_do_this_time)), history_of_agents_our_money, ",")
         current_row += 1
 
-    # histograms
+    if graphs_to_show["wellmon"]["show"].get():
+        plt.subplot(numrows,1,current_row)
+        plt.ylabel(f"Agent[{agent_to_diagnose}]\nwellbeing from money")
+        plt.plot(list(range(glob.econ_iters_to_do_this_time)), history_of_agents_well_money, ",")
+        current_row += 1
+
+    if graphs_to_show["wellcon"]["show"].get():
+        plt.subplot(numrows,1,current_row)
+        plt.ylabel(f"Agent[{agent_to_diagnose}]\nwellbeing from consumption")
+        plt.plot(list(range(glob.econ_iters_to_do_this_time)), history_of_agents_well_coms, ",")
+        current_row += 1
+
+    if graphs_to_show["wellmoncon"]["show"].get():
+        plt.subplot(numrows,1,current_row)
+        plt.ylabel(f"Agent[{agent_to_diagnose}]\nwellbeing from mon+con")
+        plt.plot(list(range(glob.econ_iters_to_do_this_time)), history_of_agents_well_money_plus_cons, ",")
+        current_row += 1
+
+    # show histograms
+
     plt.subplot(numrows, 5, (numrows-1) * 5 + 1)
     plt.ylabel("Sell Price histo")
+    assert(len(all_prices_as_list) > 0)
     plt.hist(all_prices_as_list, range=(0, max(all_prices_as_list) * 1.3), bins=20)
 
     plt.subplot(numrows, 5, (numrows-1) * 5 + 2)
@@ -356,9 +381,7 @@ def do_all_plots():
     plt.ylabel("avail histo")
     plt.hist(num_units_available_on_last_shopping_trip_as_list, range=(0, max(num_units_available_on_last_shopping_trip_as_list) * 1.3), bins=20)
 
-
     plt.show()
-
 
 def clear_histories():
     history_of_average_current_selling_price.clear()
@@ -366,16 +389,22 @@ def clear_histories():
     history_of_agents_stock_for_sale.clear()
     history_of_agents_goods_purchased.clear()
     history_of_agents_our_money.clear()
+    history_of_agents_well_money.clear()
+    history_of_agents_well_coms.clear()
+    history_of_agents_well_money_plus_cons.clear()
+    history_of_agents_days_to_full.clear()
+    history_of_agents_days_to_empty.clear()
     all_prices_as_list.clear()
     stock_for_sale_as_list.clear()
     our_money_as_list.clear()
     num_units_purchased_on_last_shopping_trip_as_list.clear()
     num_units_available_on_last_shopping_trip_as_list.clear()
 
-
 def run_model():
 
     plt.close()
+
+    # read variables from GUI
     const.NUM_AGENTS_FOR_PRICE_COMPARISON       = int(var_widget_data_array["nc"]["box"].get())
     const.NUM_AGENTS                            = int(var_widget_data_array["na"]["box"].get())
     glob.econ_iters_to_do_this_time             = int(var_widget_data_array["ni"]["box"].get())
@@ -408,18 +437,15 @@ def run_model():
         history_of_agents_stock_for_sale.append(agents[agent_to_diagnose].stock_for_sale)
         history_of_agents_goods_purchased.append(agents[agent_to_diagnose].goods_purchased)
         history_of_agents_our_money.append(agents[agent_to_diagnose].our_money)
+        history_of_agents_well_money.append(raw_wellbeing_from_savings(agents[agent_to_diagnose].our_money))
+        history_of_agents_well_coms.append(wellbeing_from_consumption(agent_to_diagnose,0))
+        history_of_agents_well_money_plus_cons.append(wellbeing_from_consumption_and_savings(agent_to_diagnose,0,0))
+        history_of_agents_days_to_full.append(agents[agent_to_diagnose].days_till_stock_storage_full)
+        history_of_agents_days_to_empty.append(agents[agent_to_diagnose].days_till_stock_storage_empty)
+
 
         # go round loop again
 
-    # clear arrays for upcoming histograms
-
-    all_prices_as_list.clear()
-    stock_for_sale_as_list.clear()
-    our_money_as_list.clear()
-    num_units_purchased_on_last_shopping_trip_as_list.clear()
-    num_units_available_on_last_shopping_trip_as_list.clear()
-
-    # fill in arrays for histograms
     for agent in agents:
         all_prices_as_list.append(agent.selling_price)
         stock_for_sale_as_list.append(agent.stock_for_sale)
@@ -432,25 +458,44 @@ def run_model():
 
 ######################################################################################################################
 ######################################################################################################################
+######################################################################################################################
+######################################################################################################################
 
 agent_to_diagnose = 0
 
 agents = []
 
 # create arrays for storing histories of things we're going to monitor
+
+# declare "history of" arrays
 history_of_average_current_selling_price = []
 history_of_agents_price = []
 history_of_agents_stock_for_sale = []
 history_of_agents_goods_purchased = []
 history_of_agents_our_money = []
+history_of_agents_well_money = []
+history_of_agents_well_coms = []
+history_of_agents_well_money_plus_cons = []
+history_of_agents_days_to_full = []
+history_of_agents_days_to_empty = []
+
+# declare arrays for histograms
 all_prices_as_list = []
 stock_for_sale_as_list = []
 our_money_as_list = []
 num_units_purchased_on_last_shopping_trip_as_list = []
 num_units_available_on_last_shopping_trip_as_list = []
 
+# prepare histograms
+
+all_prices_as_list.clear()
+stock_for_sale_as_list.clear()
+our_money_as_list.clear()
+num_units_purchased_on_last_shopping_trip_as_list.clear()
+num_units_available_on_last_shopping_trip_as_list.clear()
 
 
+# Begin creation of button/GUI window
 root = Tk()
 root.title("Agent Based Model")
 
@@ -459,13 +504,18 @@ welcome_text_widget = Label(root, text="Welcome to Mick's Monetary Simulation")
 welcome_text_widget.grid(row=row, column=0, columnspan=2, padx=5, pady=15)
 row += 1
 
-graphs_to_show =    {
-                        "avsp": {"desc": "Av sell price",       "default": 1},
-                          "sp": {"desc": "Sell price",          "default": 1},
-                         "sfs": {"desc": "Stock for sale",      "default": 0},
-                          "gp": {"desc": "Goods purchased",     "default": 1},
-                         "mon": {"desc": "Our money",           "default": 1}
-                    }
+graphs_to_show = {
+                        "avsp": {"desc": "Av sell price",           "default": 1},
+                          "sp": {"desc": "Sell price",              "default": 1},
+                         "sfs": {"desc": "Stock for sale",          "default": 0},
+                          "gp": {"desc": "Goods purchased",         "default": 1},
+                         "mon": {"desc": "Our money",               "default": 1},
+                     "wellmon": {"desc": "Wellbeing money",         "default": 1},
+                     "wellcon": {"desc": "Wellbeing con",           "default": 1},
+                  "wellmoncon": {"desc": "Wellbeing money + con",   "default": 1},
+                        "dtfe": {"desc": "Days till empty / full",  "default": 1},
+
+}
 
 var_widget_data_array = {
                             "na": {"desc": "Number of agents",                  "var": const.NUM_AGENTS},
@@ -507,8 +557,11 @@ for key, value in graphs_to_show.items():
 
     cb_row += 1
 
+refresh_button = Button(frame_for_checkboxes, text="Refresh", command=do_all_plots)
+refresh_button.grid(row=cb_row, column=1, padx=5, pady=5)
 
 row += 1
+
 
 # progress bar and buttons
 progress_label = Label(root, text="Progress:")

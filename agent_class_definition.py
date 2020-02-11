@@ -15,6 +15,8 @@ class AgentClass:
         self.num_days_savings_will_last = 0
         self.selling_price = glob.last_observed_purchase_price * utils.approx_one()
         self.selling_price_multiplier = 0
+        self.days_till_stock_storage_full = -1.0  # -1 just means not set yet
+        self.days_till_stock_storage_empty = -1.0  # -1 just means not set yet
         self.iterations_since_last_buy = 0
         self.iterations_since_last_sell = 0
         self.price_rank = 0
