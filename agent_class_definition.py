@@ -13,7 +13,9 @@ class AgentClass:
         self.goods_we_produce_per_day = const.TYPICAL_GOODS_MADE_PER_DAY * utils.approx_one()
         self.our_money = const.TYPICAL_STARTING_MONEY * utils.approx_one()
         self.num_days_savings_will_last = 0
-        self.selling_price = glob.last_observed_purchase_price * utils.approx_one()
+        #self.selling_price = glob.last_observed_purchase_price * utils.approx_one()
+        self.selling_price = const.TYPICAL_STARTING_PRICE * utils.approx_one()
+
         self.selling_price_multiplier = 0
         self.days_till_stock_storage_full = -1.0  # -1 just means not set yet
         self.days_till_stock_storage_empty = -1.0  # -1 just means not set yet

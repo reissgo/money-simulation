@@ -1,6 +1,7 @@
 # Money simulation in Python
 # see "#if ECONSIM" in command2.cpp
 
+# imports
 import money_constants as const
 import globals as glob
 from agent_class_definition import AgentClass
@@ -10,6 +11,7 @@ from matplotlib import pyplot as plt
 import matplotlib.patches as patches
 from tkinter import *
 from tkinter.ttk import *  # https://stackoverflow.com/questions/33768577/tkinter-gui-with-progress-bar
+import json
 
 def random_other_agent_with_stock_for_sale(buyer_idx): # done
     for ctr in range(1, 10):
@@ -157,7 +159,7 @@ def purchase():
                             agents[buying_agent_idx].our_money -= (agents[selling_agent_idx].selling_price * const.UNIT_OF_GOODS)
                             agents[buying_agent_idx].iterations_since_last_buy = 0
 
-                            last_observed_purchase_price = agents[selling_agent_idx].selling_price
+                            #last_observed_purchase_price = agents[selling_agent_idx].selling_price
 
                         else:  # report that we can't afford to purchase anything
                             # print diagnostic?
@@ -269,7 +271,7 @@ def iterate():
         agent.iterations_since_last_price_change += 1
 
 def do_all_plots():
-
+    save_GUI_set_constants()
     # prep
     plt.rcParams["figure.figsize"] = (18,12)
 
@@ -390,21 +392,51 @@ def clear_histories():
     num_units_purchased_on_last_shopping_trip_as_list.clear()
     num_units_available_on_last_shopping_trip_as_list.clear()
 
+def read_variables_from_gui():
+    # read variables from GUI
+
+    check_ctr = 0
+
+    shortname = "nc"; check_ctr += 1
+    const.NUM_AGENTS_FOR_PRICE_COMPARISON       = var_widget_data_array[shortname]["var"] = int(var_widget_data_array[shortname]["box"].get())
+
+    shortname = "na"; check_ctr += 1
+    const.NUM_AGENTS                            = var_widget_data_array[shortname]["var"] = int(var_widget_data_array[shortname]["box"].get())
+
+    shortname = "ni"; check_ctr += 1
+    glob.econ_iters_to_do_this_time             = var_widget_data_array[shortname]["var"] = int(var_widget_data_array[shortname]["box"].get())
+
+    shortname = "sm"; check_ctr += 1
+    const.TYPICAL_STARTING_MONEY                = var_widget_data_array[shortname]["var"] = float(var_widget_data_array[shortname]["box"].get())
+
+    shortname = "gd"; check_ctr += 1
+    const.TYPICAL_GOODS_MADE_PER_DAY            = var_widget_data_array[shortname]["var"] = float(var_widget_data_array[shortname]["box"].get())
+
+    shortname = "ms"; check_ctr += 1
+    const.MAXIMUM_STOCK                         = var_widget_data_array[shortname]["var"] = float(var_widget_data_array[shortname]["box"].get())
+
+    shortname = "pc"; check_ctr += 1
+    const.TYPICAL_DAYS_BETWEEN_PRICE_CHANGES    = var_widget_data_array[shortname]["var"] = float(var_widget_data_array[shortname]["box"].get())
+
+    shortname = "bp"; check_ctr += 1
+    const.TYPICAL_DAYS_BETWEEN_PURCHASES        = var_widget_data_array[shortname]["var"] = float(var_widget_data_array[shortname]["box"].get())
+
+    shortname = "sp"; check_ctr += 1
+    const.TYPICAL_STARTING_PRICE                = var_widget_data_array[shortname]["var"] = float(var_widget_data_array[shortname]["box"].get())
+
+    assert(check_ctr == len(var_widget_data_array))
+
+    #for key,value in graphs_to_show.items()
+    #    graphs_to_show[key]["default"] = graphs_to_show[key]["show"].get()
+
 def run_model():
+
 
     plt.close()
 
-    # read variables from GUI
-    const.NUM_AGENTS_FOR_PRICE_COMPARISON       = int(var_widget_data_array["nc"]["box"].get())
-    const.NUM_AGENTS                            = int(var_widget_data_array["na"]["box"].get())
-    glob.econ_iters_to_do_this_time             = int(var_widget_data_array["ni"]["box"].get())
-    const.TYPICAL_STARTING_MONEY                = float(var_widget_data_array["sm"]["box"].get())
-    const.TYPICAL_GOODS_MADE_PER_DAY            = float(var_widget_data_array["gd"]["box"].get())
-    const.MAXIMUM_STOCK                         = float(var_widget_data_array["ms"]["box"].get())
-    const.TYPICAL_DAYS_BETWEEN_PRICE_CHANGES    = float(var_widget_data_array["pc"]["box"].get())
-    const.TYPICAL_DAYS_BETWEEN_PURCHASES        = float(var_widget_data_array["bp"]["box"].get())
-    const.TYPICAL_STARTING_PRICE                = float(var_widget_data_array["sp"]["box"].get())
-    glob.last_observed_purchase_price = const.TYPICAL_STARTING_PRICE
+    read_variables_from_gui()
+
+    save_GUI_set_constants()
 
     # create and initialise all agents
     agents.clear()
@@ -445,19 +477,63 @@ def run_model():
 
     do_all_plots()
 
+def save_GUI_set_constants():
+    file = open("GUI_const.txt","w")
+    for key,value in var_widget_data_array.items():
+        file.write(key+"\n")
+        file.write(str(value["var"])+"\n")
+
+    for key,value in graphs_to_show.items():
+        file.write(key+"\n")
+        file.write(str(value["show"].get())+"\n")
+
+    file.close()
+
+def load_GUI_set_constants():
+    try:
+        file = open("GUI_const.txt","r")
+        for key,value in var_widget_data_array.items():
+            key_str = file.readline()
+            val_str = file.readline()
+            key_str = key_str.rstrip("\n\r")
+            val_str = val_str.rstrip("\n\r")
+            #print(f"key_str = [{key_str}] val_str = [{val_str }]")
+            if isinstance(var_widget_data_array[key_str]["var"], float):
+                var_widget_data_array[key_str]["var"] = float(val_str)
+            else:
+                val_str = val_str.split('.')[0]
+                var_widget_data_array[key_str]["var"] = int(val_str)
+
+        for key,value in graphs_to_show.items():
+            key_str = file.readline()
+            val_str = file.readline()
+            key_str = key_str.rstrip("\n\r")
+            val_str = val_str.rstrip("\n\r")
+            graphs_to_show[key_str]["default"] = int(val_str)
+        file.close()
+    except:
+        pass
+
+
+
+def diagnostics():
+    print("")
+    print("---------------------------------------------------------------------")
+    print("diagnostics():...")
+    print(var_widget_data_array)
+    print("---------------------------------------------------------------------")
 
 ######################################################################################################################
 ######################################################################################################################
 ######################################################################################################################
 ######################################################################################################################
+
 
 agent_to_diagnose = 0
 
 agents = []
 
 # create arrays for storing histories of things we're going to monitor
-
-# declare "history of" arrays
 
 history_of_average_current_selling_price = []
 history_of_agents_price = []
@@ -536,6 +612,9 @@ var_widget_data_array = {
                             "sp": {"desc": "Typical starting price",            "var": const.TYPICAL_STARTING_PRICE}
                         }
 
+
+load_GUI_set_constants()
+
 # make the label + text input fields
 for key, value in var_widget_data_array.items():
     label = Label(root, text=value["desc"])
@@ -547,7 +626,7 @@ for key, value in var_widget_data_array.items():
     value["box"] = number_entry_box
     row += 1
 
-# make the graphs to display checkboxes
+# make the graphs-to-display checkboxes
 frame_for_checkboxes = LabelFrame(root,text="Graphs to display")
 frame_for_checkboxes.grid(row=row, column=0, columnspan=2, padx=5, pady=5, sticky=W+E)
 
@@ -585,6 +664,9 @@ run_button.grid(row=0, column=0, padx=5, pady=5, sticky=W + E)
 
 ex_button = Button(my_frame_at_bottom, text="Exit", command=exit)
 ex_button.grid(row=0, column=1, padx=5, pady=5, sticky=W+E)
+
+diag_button = Button(my_frame_at_bottom, text="Debug", command=diagnostics)
+diag_button.grid(row=0, column=2, padx=5, pady=5, sticky=W+E)
 
 root.mainloop()
 
