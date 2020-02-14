@@ -1,5 +1,4 @@
-import money_constants as const
-import globals as glob
+
 import math
 from matplotlib import pyplot as plt
 from tkinter import *
@@ -50,31 +49,31 @@ def read_variables_from_gui():
     check_ctr = 0
 
     shortname = "nc"; check_ctr += 1
-    const.NUM_AGENTS_FOR_PRICE_COMPARISON       = var_widget_data_array[shortname]["var"] = int(var_widget_data_array[shortname]["box"].get())
+    abm.NUM_AGENTS_FOR_PRICE_COMPARISON       = var_widget_data_array[shortname]["var"] = int(var_widget_data_array[shortname]["box"].get())
 
     shortname = "na"; check_ctr += 1
-    const.NUM_AGENTS                            = var_widget_data_array[shortname]["var"] = int(var_widget_data_array[shortname]["box"].get())
+    abm.NUM_AGENTS                            = var_widget_data_array[shortname]["var"] = int(var_widget_data_array[shortname]["box"].get())
 
     shortname = "ni"; check_ctr += 1
-    glob.econ_iters_to_do_this_time             = var_widget_data_array[shortname]["var"] = int(var_widget_data_array[shortname]["box"].get())
+    abm.econ_iters_to_do_this_time             = var_widget_data_array[shortname]["var"] = int(var_widget_data_array[shortname]["box"].get())
 
     shortname = "sm"; check_ctr += 1
-    const.TYPICAL_STARTING_MONEY                = var_widget_data_array[shortname]["var"] = float(var_widget_data_array[shortname]["box"].get())
+    abm.TYPICAL_STARTING_MONEY                = var_widget_data_array[shortname]["var"] = float(var_widget_data_array[shortname]["box"].get())
 
     shortname = "gd"; check_ctr += 1
-    const.TYPICAL_GOODS_MADE_PER_DAY            = var_widget_data_array[shortname]["var"] = float(var_widget_data_array[shortname]["box"].get())
+    abm.TYPICAL_GOODS_MADE_PER_DAY            = var_widget_data_array[shortname]["var"] = float(var_widget_data_array[shortname]["box"].get())
 
     shortname = "ms"; check_ctr += 1
-    const.MAXIMUM_STOCK                         = var_widget_data_array[shortname]["var"] = float(var_widget_data_array[shortname]["box"].get())
+    abm.MAXIMUM_STOCK                         = var_widget_data_array[shortname]["var"] = float(var_widget_data_array[shortname]["box"].get())
 
     shortname = "pc"; check_ctr += 1
-    const.TYPICAL_DAYS_BETWEEN_PRICE_CHANGES    = var_widget_data_array[shortname]["var"] = float(var_widget_data_array[shortname]["box"].get())
+    abm.TYPICAL_DAYS_BETWEEN_PRICE_CHANGES    = var_widget_data_array[shortname]["var"] = float(var_widget_data_array[shortname]["box"].get())
 
     shortname = "bp"; check_ctr += 1
-    const.TYPICAL_DAYS_BETWEEN_PURCHASES        = var_widget_data_array[shortname]["var"] = float(var_widget_data_array[shortname]["box"].get())
+    abm.TYPICAL_DAYS_BETWEEN_PURCHASES        = var_widget_data_array[shortname]["var"] = float(var_widget_data_array[shortname]["box"].get())
 
     shortname = "sp"; check_ctr += 1
-    const.TYPICAL_STARTING_PRICE                = var_widget_data_array[shortname]["var"] = float(var_widget_data_array[shortname]["box"].get())
+    abm.TYPICAL_STARTING_PRICE                = var_widget_data_array[shortname]["var"] = float(var_widget_data_array[shortname]["box"].get())
 
     assert(check_ctr == len(var_widget_data_array))
 
@@ -104,30 +103,30 @@ def do_all_plots():
     if graphs_to_show["avsp"]["show"].get():
         plt.subplot(numrows,1,current_row)
         plt.ylabel("Average selling price")
-        plt.plot(list(range(glob.econ_iters_to_do_this_time)), abm.history_of_average_current_selling_price, ",")
+        plt.plot(list(range(abm.econ_iters_to_do_this_time)), abm.history_of_average_current_selling_price, ",")
         current_row += 1
 
     if graphs_to_show["sp"]["show"].get():
         plt.subplot(numrows,1,current_row)
         plt.ylabel(f"Agent[{abm.agent_to_diagnose}]\nselling price")
-        plt.plot(list(range(glob.econ_iters_to_do_this_time)), abm.history_of_agents_price, ",")
+        plt.plot(list(range(abm.econ_iters_to_do_this_time)), abm.history_of_agents_price, ",")
         current_row += 1
 
     if graphs_to_show["sfs"]["show"].get():
         plt.subplot(numrows,1,current_row)
         plt.ylabel(f"Agent[{abm.agent_to_diagnose}]\nstock for sale")
         axes = plt.gca()
-        axes.set_ylim([0, max(max(abm.history_of_agents_stock_for_sale), const.MAXIMUM_STOCK * 1.2)])
-        plt.text(0, const.MAXIMUM_STOCK, "Max stock")
-        plt.plot(list(range(glob.econ_iters_to_do_this_time)), abm.history_of_agents_stock_for_sale, ",")
-        plt.plot([0, glob.econ_iters_to_do_this_time], [const.MAXIMUM_STOCK, const.MAXIMUM_STOCK],color="#00ff00")
+        axes.set_ylim([0, max(max(abm.history_of_agents_stock_for_sale), abm.MAXIMUM_STOCK * 1.2)])
+        plt.text(0,abm. MAXIMUM_STOCK, "Max stock")
+        plt.plot(list(range(abm.econ_iters_to_do_this_time)), abm.history_of_agents_stock_for_sale, ",")
+        plt.plot([0, abm.econ_iters_to_do_this_time], [abm.MAXIMUM_STOCK, abm.MAXIMUM_STOCK],color="#00ff00")
         start = -1
-        for i in range(0, glob.econ_iters_to_do_this_time):
-            if abm.history_of_agents_stock_for_sale[i] >= const.MAXIMUM_STOCK:
+        for i in range(0, abm.econ_iters_to_do_this_time):
+            if abm.history_of_agents_stock_for_sale[i] >= abm.MAXIMUM_STOCK:
                 if start == -1:
                     start = i
-            if start >= 0 and abm.history_of_agents_stock_for_sale[i] < const.MAXIMUM_STOCK:
-               plt.plot([start, i], [const.MAXIMUM_STOCK, const.MAXIMUM_STOCK], color="#ff0000", linewidth=3)
+            if start >= 0 and abm.history_of_agents_stock_for_sale[i] < abm.MAXIMUM_STOCK:
+               plt.plot([start, i], [abm.MAXIMUM_STOCK, abm.MAXIMUM_STOCK], color="#ff0000", linewidth=3)
                start = -1
         current_row += 1
 
@@ -136,38 +135,38 @@ def do_all_plots():
         plt.ylabel(f"Agent[{abm.agent_to_diagnose}]\ndays till stock full/empty")
         axes = plt.gca()
         axes.set_ylim([0, 25])
-        plt.plot(list(range(glob.econ_iters_to_do_this_time)), abm.history_of_agents_days_to_full, ",", color="#ff0000")
-        plt.plot(list(range(glob.econ_iters_to_do_this_time)), abm.history_of_agents_days_to_empty, ",", color="#00ff00")
+        plt.plot(list(range(abm.econ_iters_to_do_this_time)), abm.history_of_agents_days_to_full, ",", color="#ff0000")
+        plt.plot(list(range(abm.econ_iters_to_do_this_time)), abm.history_of_agents_days_to_empty, ",", color="#00ff00")
         current_row += 1
 
     if graphs_to_show["gp"]["show"].get():
         plt.subplot(numrows,1,current_row)
         plt.ylabel(f"Agent[{abm.agent_to_diagnose}]\ngoods purchased")
-        plt.plot(list(range(glob.econ_iters_to_do_this_time)), abm.history_of_agents_goods_purchased, ",")
+        plt.plot(list(range(abm.econ_iters_to_do_this_time)), abm.history_of_agents_goods_purchased, ",")
         current_row += 1
 
     if graphs_to_show["mon"]["show"].get():
         plt.subplot(numrows,1,current_row)
         plt.ylabel(f"Agent[{abm.agent_to_diagnose}]\nour money")
-        plt.plot(list(range(glob.econ_iters_to_do_this_time)), abm.history_of_agents_our_money, ",")
+        plt.plot(list(range(abm.econ_iters_to_do_this_time)), abm.history_of_agents_our_money, ",")
         current_row += 1
 
     if graphs_to_show["wellmon"]["show"].get():
         plt.subplot(numrows,1,current_row)
         plt.ylabel(f"Agent[{abm.agent_to_diagnose}]\nwellbeing from money")
-        plt.plot(list(range(glob.econ_iters_to_do_this_time)), abm.history_of_agents_well_money, ",")
+        plt.plot(list(range(abm.econ_iters_to_do_this_time)), abm.history_of_agents_well_money, ",")
         current_row += 1
 
     if graphs_to_show["wellcon"]["show"].get():
         plt.subplot(numrows,1,current_row)
         plt.ylabel(f"Agent[{abm.agent_to_diagnose}]\nwellbeing from consumption")
-        plt.plot(list(range(glob.econ_iters_to_do_this_time)), abm.history_of_agents_well_coms, ",")
+        plt.plot(list(range(abm.econ_iters_to_do_this_time)), abm.history_of_agents_well_coms, ",")
         current_row += 1
 
     if graphs_to_show["wellmoncon"]["show"].get():
         plt.subplot(numrows,1,current_row)
         plt.ylabel(f"Agent[{abm.agent_to_diagnose}]\nwellbeing from mon+con")
-        plt.plot(list(range(glob.econ_iters_to_do_this_time)), abm.history_of_agents_well_money_plus_cons, ",")
+        plt.plot(list(range(abm.econ_iters_to_do_this_time)), abm.history_of_agents_well_money_plus_cons, ",")
         current_row += 1
 
     # show histograms
@@ -212,13 +211,13 @@ def run_model():
 
     abm.initialise_model()
 
-    for i in range(0, glob.econ_iters_to_do_this_time):
+    for i in range(0, abm.econ_iters_to_do_this_time):
         abm.iterate()
         abm.append_current_state_in_historical_lists_for_diagnostics()
 
 
-        if math.fmod(i, glob.econ_iters_to_do_this_time/100) == 0:
-            progress_bar['value'] = float(i) / glob.econ_iters_to_do_this_time * 100.0
+        if math.fmod(i, abm.econ_iters_to_do_this_time/100) == 0:
+            progress_bar['value'] = float(i) / abm.econ_iters_to_do_this_time * 100.0
             root.update_idletasks()
 
     abm.collect_data_for_plotting_histograms()
@@ -256,15 +255,15 @@ graphs_to_show = {
 }
 
 var_widget_data_array = {
-                            "na": {"desc": "Number of agents",                  "var": const.NUM_AGENTS},
-                            "sm": {"desc": "Typical starting money",            "var": const.TYPICAL_STARTING_MONEY},
-                            "nc": {"desc": "Num agents for price comparison",   "var": const.NUM_AGENTS_FOR_PRICE_COMPARISON},
-                            "ni": {"desc": "Num iterations to run",             "var": glob.econ_iters_to_do_this_time},
-                            "gd": {"desc": "Typical goods made per Day",        "var": const.TYPICAL_GOODS_MADE_PER_DAY},
-                            "ms": {"desc": "Maximum stock",                     "var": const.MAXIMUM_STOCK},
-                            "pc": {"desc": "Typical days between price change", "var": const.TYPICAL_DAYS_BETWEEN_PRICE_CHANGES},
-                            "bp": {"desc": "Typical days between purchases",    "var": const.TYPICAL_DAYS_BETWEEN_PURCHASES},
-                            "sp": {"desc": "Typical starting price",            "var": const.TYPICAL_STARTING_PRICE}
+                            "na": {"desc": "Number of agents",                  "var": abm.NUM_AGENTS},
+                            "sm": {"desc": "Typical starting money",            "var": abm.TYPICAL_STARTING_MONEY},
+                            "nc": {"desc": "Num agents for price comparison",   "var": abm.NUM_AGENTS_FOR_PRICE_COMPARISON},
+                            "ni": {"desc": "Num iterations to run",             "var": abm.econ_iters_to_do_this_time},
+                            "gd": {"desc": "Typical goods made per Day",        "var": abm.TYPICAL_GOODS_MADE_PER_DAY},
+                            "ms": {"desc": "Maximum stock",                     "var": abm.MAXIMUM_STOCK},
+                            "pc": {"desc": "Typical days between price change", "var": abm.TYPICAL_DAYS_BETWEEN_PRICE_CHANGES},
+                            "bp": {"desc": "Typical days between purchases",    "var": abm.TYPICAL_DAYS_BETWEEN_PURCHASES},
+                            "sp": {"desc": "Typical starting price",            "var": abm.TYPICAL_STARTING_PRICE}
                         }
 
 load_GUI_set_constants()
@@ -320,8 +319,6 @@ ex_button.grid(row=0, column=1, padx=5, pady=5, sticky=W+E)
 
 diag_button = Button(my_frame_at_bottom, text="Debug", command=diagnostics)
 diag_button.grid(row=0, column=2, padx=5, pady=5, sticky=W+E)
-
-print(sys.version)
 
 root.mainloop()
 

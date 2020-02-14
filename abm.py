@@ -1,8 +1,26 @@
-import money_constants as const
-import globals as glob
-from agent_class_definition import AgentClass
-import random
-import math
+
+from random import gauss, shuffle, randint, random
+from math import exp, log
+
+
+
+TYPICAL_STARTING_PRICE = 2.0
+ITERATIONS_PER_DAY = 1000
+NUM_AGENTS = 30
+NUM_AGENTS_FOR_PRICE_COMPARISON = 3      # i.e. we purchase from cheapest of N others
+TYPICAL_GOODS_MADE_PER_DAY = 10.0
+MAXIMUM_STOCK = TYPICAL_GOODS_MADE_PER_DAY*7
+TYPICAL_STARTING_MONEY = 100.0
+TYPICAL_DAYS_BETWEEN_PRICE_CHANGES = 3
+TYPICAL_DAYS_BETWEEN_PURCHASES = 1
+UNIT_OF_GOODS = 1.0
+NO_AGENT_FOUND = -1
+SHOW_SALES_INFO = False
+INFINITE = 9999999
+
+econ_iters_to_do_this_time = 20000
+one_day_half_life_multiplier = exp(log(.5) / ITERATIONS_PER_DAY)
+greatest_ever_num_purchases_made = 0
 
 # create arrays for storing histories of things we're going to monitor
 
@@ -42,14 +60,52 @@ num_units_available_on_last_shopping_trip_as_list = []
 
 agent_to_diagnose = 0
 
-agents = []
+agents = []  # declare that "agents" is a list type - it will get populated within "initialise_model()"
+
+def approx_one():
+    g = gauss(0,.1)
+    maxrange = .3
+    g = min(g, maxrange)
+    g = max(g, -maxrange)
+    return 1 + g
+
+
+class AgentClass:
+
+    def __init__(self):
+        self.goods_purchased = TYPICAL_GOODS_MADE_PER_DAY * approx_one() / 2
+        self.goods_purchased_in_latest_iteration = 0
+        self.stock_for_sale = MAXIMUM_STOCK * approx_one() / 2.0
+        self.stock_sold_in_latest_iteration = 0
+        self.goods_we_produce_per_day = TYPICAL_GOODS_MADE_PER_DAY * approx_one()
+        self.our_money = TYPICAL_STARTING_MONEY * approx_one()
+        self.num_days_savings_will_last = 0
+        self.selling_price = TYPICAL_STARTING_PRICE * approx_one()
+        self.selling_price_multiplier = 0
+        self.days_till_stock_storage_full = -1.0  # -1 just means not set yet
+        self.days_till_stock_storage_empty = -1.0  # -1 just means not set yet
+        self.iterations_since_last_buy = 0
+        self.iterations_since_last_sell = 0
+        self.price_rank = 0
+        self.iterations_since_last_price_change = 0
+        self.iterations_since_last_purchase = 0
+        self.sales_since_last_price_change = 0
+        self.num_units_purchased_on_last_shopping_trip = 0
+        self.num_units_available_on_last_shopping_trip = 0
+        self.days_between_price_changes = approx_one() * TYPICAL_DAYS_BETWEEN_PRICE_CHANGES
+        self.days_between_purchases = approx_one() * TYPICAL_DAYS_BETWEEN_PURCHASES
+
+
+def random_agent():
+    return randint(0, NUM_AGENTS-1)
+
 
 def random_other_agent_with_stock_for_sale(buyer_idx): # done
     for ctr in range(1, 10):
-        ans = random.randint(0, const.NUM_AGENTS-1)
-        if ans != buyer_idx and agents[ans].stock_for_sale >= const.UNIT_OF_GOODS:
+        ans = randint(0, NUM_AGENTS-1)
+        if ans != buyer_idx and agents[ans].stock_for_sale >= UNIT_OF_GOODS:
             return ans
-    return const.NO_AGENT_FOUND
+    return NO_AGENT_FOUND
 
 def average_current_selling_price():
     average = 0
@@ -57,13 +113,13 @@ def average_current_selling_price():
     for agent in agents:
         average += agent.selling_price
 
-    average /= const.NUM_AGENTS
+    average /= NUM_AGENTS
 
     return average
 
 def select_agent_to_buy_from(purchasing_agent_idx):
     # collect SIZE_OF_SELECTION_LIST random other agents
-    ans = const.NO_AGENT_FOUND
+    ans = NO_AGENT_FOUND
     size_of_selection_list = 4
     agent_list_weighting = []
     small_list_of_other_agent_idxs = []
@@ -92,7 +148,7 @@ def select_agent_to_buy_from(purchasing_agent_idx):
             agent_list_weighting.append(weight)
             sum_of_weights += weight
 
-        ran = random.random() * sum_of_weights
+        ran = random() * sum_of_weights
 
         sum_so_far = 0
 
@@ -103,42 +159,43 @@ def select_agent_to_buy_from(purchasing_agent_idx):
                 break
         return ans
     else:
-        return const.NO_AGENT_FOUND
+        return NO_AGENT_FOUND
 
     ###############################################
 
 def raw_wellbeing_from_savings(savings):
-    x = savings / (average_current_selling_price() * const.TYPICAL_GOODS_MADE_PER_DAY)
-    return -.9 + 2 / (1 + math.exp(-x)) + x * .05
+    x = savings / (average_current_selling_price() * TYPICAL_GOODS_MADE_PER_DAY)
+    return -.9 + 2 / (1 + exp(-x)) + x * .05
 
 def wellbeing_from_savings(agent_number, mod):
-    agents[agent_number].num_days_savings_will_last = (agents[agent_number].our_money + mod) / (average_current_selling_price() * const.TYPICAL_GOODS_MADE_PER_DAY)
+    agents[agent_number].num_days_savings_will_last = (agents[agent_number].our_money + mod) / (average_current_selling_price() * TYPICAL_GOODS_MADE_PER_DAY)
 
     x = agents[agent_number].num_days_savings_will_last  # storing in 'x' to make the following equation look nicer
 
-    return -.9 + 2 / (1 + math.exp(-x)) + x * .05
+    return -.9 + 2 / (1 + exp(-x)) + x * .05
 
 def wellbeing_from_consumption(agent_number, mod):
     x = agents[agent_number].goods_purchased + mod
-    return x*.05+1/(1+math.exp(-(x-6)*1))
+    return x*.05+1/(1+exp(-(x-6)*1))
 
 def wellbeing_from_consumption_and_savings(agent_number, modcon, modsav):
     return wellbeing_from_consumption(agent_number, modcon) * wellbeing_from_savings(agent_number, modsav)
 
 def purchase():
-    shuffled_agent_index_list = list(range(0, const.NUM_AGENTS))
-    random.shuffle(shuffled_agent_index_list)
+    global greatest_ever_num_purchases_made  # for reason explained here: https://eli.thegreenplace.net/2011/05/15/understanding-unboundlocalerror-in-python
+    shuffled_agent_index_list = list(range(0, NUM_AGENTS))
+    shuffle(shuffled_agent_index_list)
 
     for buying_agent_idx in shuffled_agent_index_list:
-        if agents[buying_agent_idx].iterations_since_last_purchase > (agents[buying_agent_idx].days_between_purchases * const.ITERATIONS_PER_DAY):
+        if agents[buying_agent_idx].iterations_since_last_purchase > (agents[buying_agent_idx].days_between_purchases * ITERATIONS_PER_DAY):
             agents[buying_agent_idx].iterations_since_last_purchase = 0
             selling_agent_idx = select_agent_to_buy_from(buying_agent_idx)
 
-            if selling_agent_idx == const.NO_AGENT_FOUND:
+            if selling_agent_idx == NO_AGENT_FOUND:
                 pass
             else:
                 agents[buying_agent_idx].num_units_purchased_on_last_shopping_trip = 0
-                agents[buying_agent_idx].num_units_available_on_last_shopping_trip = (agents[selling_agent_idx].stock_for_sale / const.UNIT_OF_GOODS)
+                agents[buying_agent_idx].num_units_available_on_last_shopping_trip = (agents[selling_agent_idx].stock_for_sale / UNIT_OF_GOODS)
                 num_purchases_made = False
 
                 loop_counter = 0
@@ -150,7 +207,7 @@ def purchase():
                     #    input("Pak")
                     purchase_made_flag = False
                     # if we can afford to buy then decide if we would *like* to buy
-                    if agents[buying_agent_idx].our_money >= (agents[selling_agent_idx].selling_price * const.UNIT_OF_GOODS):
+                    if agents[buying_agent_idx].our_money >= (agents[selling_agent_idx].selling_price * UNIT_OF_GOODS):
                         # we have enough money to buy goods from selling agent...
                         # haven't checked yet if we actually *want* to make the purchase
 
@@ -158,8 +215,8 @@ def purchase():
 
                         post_purchase_wellbeing = wellbeing_from_consumption_and_savings(
                                                                                             buying_agent_idx,
-                                                                                            const.UNIT_OF_GOODS,
-                                                                                            -agents[selling_agent_idx].selling_price * const.UNIT_OF_GOODS)
+                                                                                            UNIT_OF_GOODS,
+                                                                                            -agents[selling_agent_idx].selling_price * UNIT_OF_GOODS)
 
                         if post_purchase_wellbeing > wellbeing_now:
                             purchase_made_flag = True
@@ -167,8 +224,8 @@ def purchase():
 
                             agents[buying_agent_idx].num_units_purchased_on_last_shopping_trip += 1
 
-                            if (num_purchases_made > glob.greatest_ever_num_purchases_made):
-                                glob.greatest_ever_num_purchases_made = num_purchases_made
+                            if (num_purchases_made > greatest_ever_num_purchases_made):
+                                greatest_ever_num_purchases_made = num_purchases_made
 
                             if (num_purchases_made > 10000):
                                 print("agent %d has made 10000 purchases - bug?", buying_agent)
@@ -177,17 +234,17 @@ def purchase():
 
                             # they get less stock but more money
 
-                            agents[selling_agent_idx].stock_for_sale -= const.UNIT_OF_GOODS
-                            agents[selling_agent_idx].stock_sold_in_latest_iteration += const.UNIT_OF_GOODS
+                            agents[selling_agent_idx].stock_for_sale -= UNIT_OF_GOODS
+                            agents[selling_agent_idx].stock_sold_in_latest_iteration += UNIT_OF_GOODS
 
-                            agents[selling_agent_idx].our_money += (agents[selling_agent_idx].selling_price * const.UNIT_OF_GOODS)
+                            agents[selling_agent_idx].our_money += (agents[selling_agent_idx].selling_price * UNIT_OF_GOODS)
                             agents[selling_agent_idx].iterations_since_last_sell = 0
                             agents[selling_agent_idx].sales_since_last_price_change += 1
 
                             # we get more consumed but less money
-                            agents[buying_agent_idx].goods_purchased += const.UNIT_OF_GOODS
+                            agents[buying_agent_idx].goods_purchased += UNIT_OF_GOODS
                             agents[buying_agent_idx].goods_purchased_in_latest_iteration += 1
-                            agents[buying_agent_idx].our_money -= (agents[selling_agent_idx].selling_price * const.UNIT_OF_GOODS)
+                            agents[buying_agent_idx].our_money -= (agents[selling_agent_idx].selling_price * UNIT_OF_GOODS)
                             agents[buying_agent_idx].iterations_since_last_buy = 0
 
                             #last_observed_purchase_price = agents[selling_agent_idx].selling_price
@@ -196,7 +253,7 @@ def purchase():
                             # print diagnostic?
                             assert purchase_made_flag is False
 
-                        if purchase_made_flag and agents[selling_agent_idx].stock_for_sale >= const.UNIT_OF_GOODS:  # go round loop again and see if we should buy another one
+                        if purchase_made_flag and agents[selling_agent_idx].stock_for_sale >= UNIT_OF_GOODS:  # go round loop again and see if we should buy another one
                             # we just made a purchase, let's pass, i.e. go round the "while true" loop again
                             if loop_counter > 10000:
                                 print(f"Go round again ... wellbeing_now={wellbeing_now} post_purchase_wellbeing={post_purchase_wellbeing}")
@@ -216,9 +273,9 @@ def purchase():
 
 def produce():
     for agent in agents:
-        agent.stock_for_sale += (agent.goods_we_produce_per_day / const.ITERATIONS_PER_DAY)
-        if agent.stock_for_sale > const.MAXIMUM_STOCK:
-            agent.stock_for_sale = const.MAXIMUM_STOCK
+        agent.stock_for_sale += (agent.goods_we_produce_per_day / ITERATIONS_PER_DAY)
+        if agent.stock_for_sale > MAXIMUM_STOCK:
+            agent.stock_for_sale = MAXIMUM_STOCK
 
 def modify_prices():
     for agent in agents:
@@ -226,22 +283,22 @@ def modify_prices():
         agent.days_till_stock_storage_full = -1
         agent.days_till_stock_storage_empty = -1
 
-        sales_per_day_as_measured_since_last_price_change = agent.sales_since_last_price_change * const.ITERATIONS_PER_DAY / max(1,
+        sales_per_day_as_measured_since_last_price_change = agent.sales_since_last_price_change * ITERATIONS_PER_DAY / max(1,
                                                                                              agent.iterations_since_last_price_change)
         stock_growth_per_day = agent.goods_we_produce_per_day - sales_per_day_as_measured_since_last_price_change
 
         # calc days_till_stock_storage_full/empty - only really needed after the "if" but calc here for diagnostics
         if stock_growth_per_day > 0:
-            agent.days_till_stock_storage_full = (const.MAXIMUM_STOCK - agent.stock_for_sale) / stock_growth_per_day
+            agent.days_till_stock_storage_full = (MAXIMUM_STOCK - agent.stock_for_sale) / stock_growth_per_day
         else:
-            agent.days_till_stock_storage_full = const.INIFINITE
+            agent.days_till_stock_storage_full = INFINITE
 
         if stock_growth_per_day < 0:
             agent.days_till_stock_storage_empty = agent.stock_for_sale / (-1 * stock_growth_per_day)
         else:
-            agent.days_till_stock_storage_empty = const.INIFINITE
+            agent.days_till_stock_storage_empty = INFINITE
 
-        if agent.iterations_since_last_price_change > (agent.days_between_price_changes * const.ITERATIONS_PER_DAY):
+        if agent.iterations_since_last_price_change > (agent.days_between_price_changes * ITERATIONS_PER_DAY):
 
             if stock_growth_per_day > 0:  # stock room filling up
                 if agent.days_till_stock_storage_full < 3:
@@ -275,14 +332,14 @@ def modify_prices():
                     agent.iterations_since_last_price_change = 0
                     agent.sales_since_last_price_change = 0
 
-                elif agent.stock_for_sale < (const.MAXIMUM_STOCK / 2):  # // we can risk raising prices a smidge
+                elif agent.stock_for_sale < (MAXIMUM_STOCK / 2):  # // we can risk raising prices a smidge
                     agent.selling_price *= 1.05
                     agent.iterations_since_last_price_change = 0
                     agent.sales_since_last_price_change = 0
 
 def consume():
     for agent in agents:
-        agent.goods_purchased *= glob.one_day_half_life_multiplier
+        agent.goods_purchased *= one_day_half_life_multiplier
 
 def clear_histories():
     for key,value in history_list.items():
@@ -298,7 +355,7 @@ def initialise_model():
     # create and initialise all agents
     agents.clear()
 
-    for i in range(0, const.NUM_AGENTS):
+    for i in range(0, NUM_AGENTS):
         agents.append(AgentClass())
 
     clear_histories()
@@ -338,3 +395,4 @@ def iterate():
         agent.iterations_since_last_sell += 1
         agent.iterations_since_last_purchase += 1
         agent.iterations_since_last_price_change += 1
+

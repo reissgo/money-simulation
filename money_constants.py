@@ -1,4 +1,4 @@
-
+print("money_constants.py being imported - start")
 
 
 
@@ -18,3 +18,5 @@ UNIT_OF_GOODS = 1.0
 NO_AGENT_FOUND = -1
 SHOW_SALES_INFO = False
 INIFINITE = 9999999
+
+print("money_constants.py being imported - end")
