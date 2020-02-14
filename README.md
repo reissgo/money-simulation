@@ -4,7 +4,7 @@
 
 ## Installation
 
-Assuming that you already have python and matplotlib installed then simply place *.py in a directory of your choice and execute "python money.py"
+Assuming that you already have python and matplotlib installed then simply place *.py in a directory of your choice.
 
 ## Requirements
 
@@ -14,6 +14,8 @@ Assuming that you already have python and matplotlib installed then simply place
 </ul>
 
 ## Usage
+
+From a terminal or command prompt, type:
 
 python money.py
 
