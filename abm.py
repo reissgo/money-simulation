@@ -226,7 +226,6 @@ def modify_prices():
         agent.days_till_stock_storage_full = -1
         agent.days_till_stock_storage_empty = -1
 
-        #########
         sales_per_day_as_measured_since_last_price_change = agent.sales_since_last_price_change * const.ITERATIONS_PER_DAY / max(1,
                                                                                              agent.iterations_since_last_price_change)
         stock_growth_per_day = agent.goods_we_produce_per_day - sales_per_day_as_measured_since_last_price_change

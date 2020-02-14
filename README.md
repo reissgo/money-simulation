@@ -4,12 +4,12 @@
 
 ## Installation
 
-To be written
+Assuming that you already have python and matplotlib installed then simply place *.py in a directory of your choice and execute "python money.py"
 
 ## Requirements
 
 <ul>
-<li>Python</li>
+<li>Python (I'm using 3.6.7)</li>
 <li>Matplotlib</li>
 </ul>
 

@@ -1,25 +1,11 @@
-# Money simulation in Python
-# see "#if ECONSIM" in command2.cpp
-
-# imports
 import money_constants as const
 import globals as glob
-from agent_class_definition import AgentClass
-import random
 import math
 from matplotlib import pyplot as plt
-import matplotlib.patches as patches
 from tkinter import *
 from tkinter.ttk import *  # https://stackoverflow.com/questions/33768577/tkinter-gui-with-progress-bar
-import json
-
-#abm woz here
 
 import abm
-
-######################################################################################################################
-############ GUI BELOW ENGINE ABOVE ##############################################################
-######################################################################################################################
 
 def save_GUI_set_constants():
     file = open("GUI_const.txt","w")
@@ -98,10 +84,12 @@ def read_variables_from_gui():
 def do_all_plots():
     save_GUI_set_constants()
     # prep
-    plt.rcParams["figure.figsize"] = (18,12)
+    #plt.rcParams["figure.figsize"] = (18,12)
 
     plt.subplots_adjust(top=.98)
     plt.subplots_adjust(bottom=.02)
+    plt.subplots_adjust(right=.98)
+    plt.subplots_adjust(left=.07)
 
     # count selected graphs
     numrows = 0
@@ -185,24 +173,24 @@ def do_all_plots():
     # show histograms
 
     plt.subplot(numrows, 5, (numrows-1) * 5 + 1)
-    plt.ylabel("Sell Price histo")
+    plt.ylabel("Selling Price")
     assert(len(abm.all_prices_as_list) > 0)
-    plt.hist(abm.all_prices_as_list, range=(0, max(abm.all_prices_as_list) * 1.3), bins=20)
+    plt.hist(abm.all_prices_as_list, range=(0, max(abm.all_prices_as_list) * 1.1), bins=20)
 
     plt.subplot(numrows, 5, (numrows-1) * 5 + 2)
-    plt.ylabel("Stock histo")
-    plt.hist(abm.stock_for_sale_as_list, range=(0, max(abm.stock_for_sale_as_list) * 5.3), bins=20)
+    plt.ylabel("Stock for sale")
+    plt.hist(abm.stock_for_sale_as_list, range=(0, max(abm.stock_for_sale_as_list) * 1.1), bins=20)
 
     plt.subplot(numrows, 5, (numrows-1) * 5 + 3)
-    plt.ylabel("money histo")
-    plt.hist(abm.our_money_as_list, range=(0, max(abm.our_money_as_list) * 1.3), bins=20)
+    plt.ylabel("Money")
+    plt.hist(abm.our_money_as_list, range=(0, max(abm.our_money_as_list) * 1.1), bins=20)
 
     plt.subplot(numrows, 5, (numrows-1) * 5 + 4)
-    plt.ylabel("purch histo")
+    plt.ylabel("Purchased")
     plt.hist(abm.num_units_purchased_on_last_shopping_trip_as_list, range=(0, max(abm.num_units_purchased_on_last_shopping_trip_as_list) * 1.3), bins=20)
 
     plt.subplot(numrows, 5, (numrows-1) * 5 + 5)
-    plt.ylabel("avail histo")
+    plt.ylabel("Available")
     plt.hist(abm.num_units_available_on_last_shopping_trip_as_list, range=(0, max(abm.num_units_available_on_last_shopping_trip_as_list) * 1.3), bins=20)
 
     plt.show()
@@ -219,7 +207,6 @@ def run_model_wrapper():
     read_variables_from_gui()
     save_GUI_set_constants()
     run_model()
-
 
 def run_model():
 
@@ -238,17 +225,6 @@ def run_model():
 
     do_all_plots()
 
-######################################################################################################################
-######################################################################################################################
-######################################################################################################################
-
-
-
-
-
-
-
-
 # prepare histograms
 
 abm.all_prices_as_list.clear()
@@ -256,7 +232,6 @@ abm.stock_for_sale_as_list.clear()
 abm.our_money_as_list.clear()
 abm.num_units_purchased_on_last_shopping_trip_as_list.clear()
 abm.num_units_available_on_last_shopping_trip_as_list.clear()
-
 
 # Begin creation of button/GUI window
 root = Tk()
@@ -291,7 +266,6 @@ var_widget_data_array = {
                             "bp": {"desc": "Typical days between purchases",    "var": const.TYPICAL_DAYS_BETWEEN_PURCHASES},
                             "sp": {"desc": "Typical starting price",            "var": const.TYPICAL_STARTING_PRICE}
                         }
-
 
 load_GUI_set_constants()
 
@@ -328,7 +302,6 @@ refresh_button.grid(row=cb_row, column=1, padx=5, pady=5)
 
 row += 1
 
-
 # progress bar and buttons
 progress_label = Label(root, text="Progress:")
 progress_label.grid(row=row, column=0, sticky=E, padx=5, pady=5)
@@ -347,6 +320,8 @@ ex_button.grid(row=0, column=1, padx=5, pady=5, sticky=W+E)
 
 diag_button = Button(my_frame_at_bottom, text="Debug", command=diagnostics)
 diag_button.grid(row=0, column=2, padx=5, pady=5, sticky=W+E)
+
+print(sys.version)
 
 root.mainloop()
 
