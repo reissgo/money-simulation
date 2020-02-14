@@ -17,7 +17,7 @@ Assuming that you already have python and matplotlib installed then simply place
 
 From a terminal or command prompt, type:
 
-python money.py
+python GUI.py
 
 ## Contact
 
