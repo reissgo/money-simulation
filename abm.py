@@ -1,7 +1,5 @@
-
 from random import gauss, shuffle, randint, random
 from math import exp, log
-
 
 
 TYPICAL_STARTING_PRICE = 2.0
@@ -63,11 +61,7 @@ agent_to_diagnose = 0
 agents = []  # declare that "agents" is a list type - it will get populated within "initialise_model()"
 
 def approx_one():
-    g = gauss(0,.1)
-    maxrange = .3
-    g = min(g, maxrange)
-    g = max(g, -maxrange)
-    return 1 + g
+    return 1 + (random()-0.5)/10.0
 
 
 class AgentClass:
@@ -353,14 +347,14 @@ def clear_histories():
 
 def initialise_model():
     # create and initialise all agents
+    global agents
     agents.clear()
 
-    for i in range(0, NUM_AGENTS):
-        agents.append(AgentClass())
+    agents = [AgentClass() for _ in range(NUM_AGENTS)]
 
     clear_histories()
 
-def append_current_state_in_historical_lists_for_diagnostics():
+def append_current_state_to_history():
     history_of_average_current_selling_price.append(average_current_selling_price())
     history_of_agents_price.append(agents[agent_to_diagnose].selling_price)
     history_of_agents_stock_for_sale.append(agents[agent_to_diagnose].stock_for_sale)
