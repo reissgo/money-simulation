@@ -1,8 +1,10 @@
+colab = 1
 
 import math
 from matplotlib import pyplot as plt
-from tkinter import *
-from tkinter.ttk import *  # needed for progress bar
+if not colab:
+    from tkinter import *
+    from tkinter.ttk import *  # needed for progress bar
 import abm
 
 def save_GUI_set_constants():
@@ -79,8 +81,16 @@ def read_variables_from_gui():
     #for key,value in graphs_to_show.items()
     #    graphs_to_show[key]["default"] = graphs_to_show[key]["show"].get()
 
+def shall_we_show_this_graph(short_description):
+    if colab:
+        answer = True
+    else:
+        answer = data_for_creating_graphs_to_show_checkboxes[short_description]["show"].get()
+    return answer
+
 def do_all_plots():
-    save_GUI_set_constants()
+    if not colab:
+        save_GUI_set_constants()
     # prep
     #plt.rcParams["figure.figsize"] = (18,12)
 
@@ -91,27 +101,30 @@ def do_all_plots():
 
     # count selected graphs
     numrows = 0
-    for val in data_for_creating_graphs_to_show_checkboxes.values():
-        if val["show"].get():
-            numrows += 1
+    if colab:
+        numrows += 9  # ??
+    else:
+        for val in data_for_creating_graphs_to_show_checkboxes.values():
+            if val["show"].get():
+                numrows += 1
 
     numrows += 1  # for the row of histograms at the bottom
     current_row = 1
 
     # show selected graphs
-    if data_for_creating_graphs_to_show_checkboxes["avsp"]["show"].get():
+    if shall_we_show_this_graph("avsp"):
         plt.subplot(numrows,1,current_row)
         plt.ylabel("Average selling price")
         plt.plot(list(range(abm.econ_iters_to_do_this_time)), abm.history_of_average_current_selling_price, ",")
         current_row += 1
 
-    if data_for_creating_graphs_to_show_checkboxes["sp"]["show"].get():
+    if shall_we_show_this_graph("sp"):
         plt.subplot(numrows,1,current_row)
         plt.ylabel(f"Agent[{abm.agent_to_diagnose}]\nselling price")
         plt.plot(list(range(abm.econ_iters_to_do_this_time)), abm.history_of_agents_price, ",")
         current_row += 1
 
-    if data_for_creating_graphs_to_show_checkboxes["sfs"]["show"].get():
+    if shall_we_show_this_graph("sfs"):
         plt.subplot(numrows,1,current_row)
         plt.ylabel(f"Agent[{abm.agent_to_diagnose}]\nstock for sale")
         axes = plt.gca()
@@ -129,7 +142,7 @@ def do_all_plots():
                start = -1
         current_row += 1
 
-    if data_for_creating_graphs_to_show_checkboxes["dtfe"]["show"].get():
+    if shall_we_show_this_graph("dtfe"):
         plt.subplot(numrows,1,current_row)
         plt.ylabel(f"Agent[{abm.agent_to_diagnose}]\ndays till stock full/empty")
         axes = plt.gca()
@@ -138,31 +151,31 @@ def do_all_plots():
         plt.plot(list(range(abm.econ_iters_to_do_this_time)), abm.history_of_agents_days_to_empty, ",", color="#00ff00")
         current_row += 1
 
-    if data_for_creating_graphs_to_show_checkboxes["gp"]["show"].get():
+    if shall_we_show_this_graph("gp"):
         plt.subplot(numrows,1,current_row)
         plt.ylabel(f"Agent[{abm.agent_to_diagnose}]\ngoods purchased")
         plt.plot(list(range(abm.econ_iters_to_do_this_time)), abm.history_of_agents_goods_purchased, ",")
         current_row += 1
 
-    if data_for_creating_graphs_to_show_checkboxes["mon"]["show"].get():
+    if shall_we_show_this_graph("mon"):
         plt.subplot(numrows,1,current_row)
         plt.ylabel(f"Agent[{abm.agent_to_diagnose}]\nour money")
         plt.plot(list(range(abm.econ_iters_to_do_this_time)), abm.history_of_agents_our_money, ",")
         current_row += 1
 
-    if data_for_creating_graphs_to_show_checkboxes["wellmon"]["show"].get():
+    if shall_we_show_this_graph("wellmon"):
         plt.subplot(numrows,1,current_row)
         plt.ylabel(f"Agent[{abm.agent_to_diagnose}]\nwellbeing from money")
         plt.plot(list(range(abm.econ_iters_to_do_this_time)), abm.history_of_agents_well_money, ",")
         current_row += 1
 
-    if data_for_creating_graphs_to_show_checkboxes["wellcon"]["show"].get():
+    if shall_we_show_this_graph("wellcon"):
         plt.subplot(numrows,1,current_row)
         plt.ylabel(f"Agent[{abm.agent_to_diagnose}]\nwellbeing from consumption")
         plt.plot(list(range(abm.econ_iters_to_do_this_time)), abm.history_of_agents_well_coms, ",")
         current_row += 1
 
-    if data_for_creating_graphs_to_show_checkboxes["wellmoncon"]["show"].get():
+    if shall_we_show_this_graph("wellmoncon"):
         plt.subplot(numrows,1,current_row)
         plt.ylabel(f"Agent[{abm.agent_to_diagnose}]\nwellbeing from mon+con")
         plt.plot(list(range(abm.econ_iters_to_do_this_time)), abm.history_of_agents_well_money_plus_cons, ",")
@@ -206,15 +219,19 @@ def update_progress_bar(i):
 
 def run_model():
     plt.close()
-    read_variables_from_gui()
-    save_GUI_set_constants()
+    if colab:
+        pass
+    else:
+        read_variables_from_gui()
+        save_GUI_set_constants()
 
     abm.initialise_model()
 
     for i in range(0, abm.econ_iters_to_do_this_time):
         abm.iterate()
         abm.append_current_state_to_history()
-        update_progress_bar(i)
+        if not colab:
+            update_progress_bar(i)
 
     abm.collect_data_for_plotting_histograms()
 
@@ -229,18 +246,19 @@ abm.num_units_purchased_on_last_shopping_trip_as_list.clear()
 abm.num_units_available_on_last_shopping_trip_as_list.clear()
 
 # Begin creation of button/GUI window
-root = Tk()
-root.title("A Monetary System ABM")
+if not colab:
+    root = Tk()
+    root.title("A Monetary System ABM")
 
 data_for_creating_graphs_to_show_checkboxes =   {
-                                                    "avsp": {"desc": "Av sell price",           "default": 1},
-                                                      "sp": {"desc": "Sell price",              "default": 1},
+                                                    "avsp": {"desc": "Average sell price",           "default": 1},
+                                                      "sp": {"desc": "Selling price",              "default": 1},
                                                      "sfs": {"desc": "Stock for sale",          "default": 1},
                                                       "gp": {"desc": "Goods purchased",         "default": 1},
-                                                     "mon": {"desc": "Our money",               "default": 0},
+                                                     "mon": {"desc": "Our stock of money",               "default": 0},
                                                  "wellmon": {"desc": "Wellbeing money",         "default": 0},
-                                                 "wellcon": {"desc": "Wellbeing con",           "default": 0},
-                                              "wellmoncon": {"desc": "Wellbeing money + con",   "default": 0},
+                                                 "wellcon": {"desc": "Wellbeing from consumption",           "default": 0},
+                                              "wellmoncon": {"desc": "Wellbeing from money + wellbeing from consumption",   "default": 0},
                                                     "dtfe": {"desc": "Days till empty / full",  "default": 0},
                                                 }
 
@@ -260,53 +278,56 @@ load_GUI_set_constants()
 
 # make widgets to set variables
 
-row_ctr = 0
-for key, value in data_for_creating_widgets_to_set_variables.items():
-    label = Label(root, text=value["desc"])
-    label.grid(row=row_ctr, column=0, sticky=E, padx=5, pady=5)
-    number_entry_box = Entry(root)
-    number_entry_box.grid(row=row_ctr, column=1, padx=5, pady=5)
-    number_entry_box.insert(0, value["var"])
-    value["lab"] = label
-    value["box"] = number_entry_box
+if colab:
+    run_model()
+else:
+    row_ctr = 0
+    for key, value in data_for_creating_widgets_to_set_variables.items():
+        label = Label(root, text=value["desc"])
+        label.grid(row=row_ctr, column=0, sticky=E, padx=5, pady=5)
+        number_entry_box = Entry(root)
+        number_entry_box.grid(row=row_ctr, column=1, padx=5, pady=5)
+        number_entry_box.insert(0, value["var"])
+        value["lab"] = label
+        value["box"] = number_entry_box
+        row_ctr += 1
+
+    # make the graphs-to-display checkboxes
+    frame_for_checkboxes = LabelFrame(root,text="Graphs to display")
+    frame_for_checkboxes.grid(row=row_ctr, column=0, columnspan=2, padx=5, pady=5, sticky=W + E)
+
+    for checkbox_row, (key, value) in enumerate(data_for_creating_graphs_to_show_checkboxes.items(), start=1):
+        value["show"] = IntVar()
+        value["show"].set(value["default"])
+
+        label = Label(frame_for_checkboxes, text=value["desc"])
+        label.grid(row=checkbox_row, column=0, sticky=E, padx=5, pady=5)
+
+        check_box = Checkbutton(frame_for_checkboxes, variable=value["show"])
+        check_box.grid(row=checkbox_row, column=1, padx=5, pady=5)
+
+    refresh_button = Button(frame_for_checkboxes, text="Refresh graphs window", command=do_all_plots)
+    refresh_button.grid(row=len(data_for_creating_graphs_to_show_checkboxes)+1, column=1, padx=5, pady=5)
+
     row_ctr += 1
 
-# make the graphs-to-display checkboxes
-frame_for_checkboxes = LabelFrame(root,text="Graphs to display")
-frame_for_checkboxes.grid(row=row_ctr, column=0, columnspan=2, padx=5, pady=5, sticky=W + E)
+    # progress bar and buttons
+    progress_label = Label(root, text="Progress:")
+    progress_label.grid(row=row_ctr, column=0, sticky=E, padx=5, pady=5)
+    progress_bar = Progressbar(root, orient=HORIZONTAL, length=100, mode='determinate')
+    progress_bar.grid(row=row_ctr, column=1, padx=5, pady=15)
+    row_ctr += 1
 
-for checkbox_row, (key, value) in enumerate(data_for_creating_graphs_to_show_checkboxes.items(), start=1):
-    value["show"] = IntVar()
-    value["show"].set(value["default"])
+    frame_for_action_buttons = Frame(root)
+    frame_for_action_buttons.grid(row=row_ctr, column=0, columnspan=2, padx=5, pady=5, sticky=W + E)
 
-    label = Label(frame_for_checkboxes, text=value["desc"])
-    label.grid(row=checkbox_row, column=0, sticky=E, padx=5, pady=5)
+    run_button = Button(frame_for_action_buttons, text="Run!", command=run_model)
+    run_button.grid(row=0, column=0, padx=5, pady=5, sticky=W + E)
 
-    check_box = Checkbutton(frame_for_checkboxes, variable=value["show"])
-    check_box.grid(row=checkbox_row, column=1, padx=5, pady=5)
+    ex_button = Button(frame_for_action_buttons, text="Exit", command=exit)
+    ex_button.grid(row=0, column=1, padx=5, pady=5, sticky=W+E)
 
-refresh_button = Button(frame_for_checkboxes, text="Refresh graphs window", command=do_all_plots)
-refresh_button.grid(row=len(data_for_creating_graphs_to_show_checkboxes)+1, column=1, padx=5, pady=5)
+    diag_button = Button(frame_for_action_buttons, text="Debug", command=diagnostics)
+    diag_button.grid(row=0, column=2, padx=5, pady=5, sticky=W+E)
 
-row_ctr += 1
-
-# progress bar and buttons
-progress_label = Label(root, text="Progress:")
-progress_label.grid(row=row_ctr, column=0, sticky=E, padx=5, pady=5)
-progress_bar = Progressbar(root, orient=HORIZONTAL, length=100, mode='determinate')
-progress_bar.grid(row=row_ctr, column=1, padx=5, pady=15)
-row_ctr += 1
-
-frame_for_action_buttons = Frame(root)
-frame_for_action_buttons.grid(row=row_ctr, column=0, columnspan=2, padx=5, pady=5, sticky=W + E)
-
-run_button = Button(frame_for_action_buttons, text="Run!", command=run_model)
-run_button.grid(row=0, column=0, padx=5, pady=5, sticky=W + E)
-
-ex_button = Button(frame_for_action_buttons, text="Exit", command=exit)
-ex_button.grid(row=0, column=1, padx=5, pady=5, sticky=W+E)
-
-diag_button = Button(frame_for_action_buttons, text="Debug", command=diagnostics)
-diag_button.grid(row=0, column=2, padx=5, pady=5, sticky=W+E)
-
-root.mainloop()
+    root.mainloop()
