@@ -1,11 +1,19 @@
-colab = 1
+'''
+
+with colab = 0 the program pops up a window full of buttons and checkboxes made with tkinter
+with colab = 1 the program skips that and only displays a matplotlib graph at the end
+
+'''
+
+colab = 0
 
 import math
 from matplotlib import pyplot as plt
 if not colab:
     from tkinter import *
     from tkinter.ttk import *  # needed for progress bar
-import abm
+
+from abm import *
 
 def save_GUI_set_constants():
     file = open("GUI_const.txt","w")
@@ -50,31 +58,31 @@ def read_variables_from_gui():
     check_ctr = 0
 
     shortname = "nc"; check_ctr += 1
-    abm.NUM_AGENTS_FOR_PRICE_COMPARISON       = data_for_creating_widgets_to_set_variables[shortname]["var"] = int(data_for_creating_widgets_to_set_variables[shortname]["box"].get())
+    NUM_AGENTS_FOR_PRICE_COMPARISON       = data_for_creating_widgets_to_set_variables[shortname]["var"] = int(data_for_creating_widgets_to_set_variables[shortname]["box"].get())
 
     shortname = "na"; check_ctr += 1
-    abm.NUM_AGENTS                            = data_for_creating_widgets_to_set_variables[shortname]["var"] = int(data_for_creating_widgets_to_set_variables[shortname]["box"].get())
+    NUM_AGENTS                            = data_for_creating_widgets_to_set_variables[shortname]["var"] = int(data_for_creating_widgets_to_set_variables[shortname]["box"].get())
 
     shortname = "ni"; check_ctr += 1
-    abm.econ_iters_to_do_this_time             = data_for_creating_widgets_to_set_variables[shortname]["var"] = int(data_for_creating_widgets_to_set_variables[shortname]["box"].get())
+    econ_iters_to_do_this_time             = data_for_creating_widgets_to_set_variables[shortname]["var"] = int(data_for_creating_widgets_to_set_variables[shortname]["box"].get())
 
     shortname = "sm"; check_ctr += 1
-    abm.TYPICAL_STARTING_MONEY                = data_for_creating_widgets_to_set_variables[shortname]["var"] = float(data_for_creating_widgets_to_set_variables[shortname]["box"].get())
+    TYPICAL_STARTING_MONEY                = data_for_creating_widgets_to_set_variables[shortname]["var"] = float(data_for_creating_widgets_to_set_variables[shortname]["box"].get())
 
     shortname = "gd"; check_ctr += 1
-    abm.TYPICAL_GOODS_MADE_PER_DAY            = data_for_creating_widgets_to_set_variables[shortname]["var"] = float(data_for_creating_widgets_to_set_variables[shortname]["box"].get())
+    TYPICAL_GOODS_MADE_PER_DAY            = data_for_creating_widgets_to_set_variables[shortname]["var"] = float(data_for_creating_widgets_to_set_variables[shortname]["box"].get())
 
     shortname = "ms"; check_ctr += 1
-    abm.MAXIMUM_STOCK                         = data_for_creating_widgets_to_set_variables[shortname]["var"] = float(data_for_creating_widgets_to_set_variables[shortname]["box"].get())
+    MAXIMUM_STOCK                         = data_for_creating_widgets_to_set_variables[shortname]["var"] = float(data_for_creating_widgets_to_set_variables[shortname]["box"].get())
 
     shortname = "pc"; check_ctr += 1
-    abm.TYPICAL_DAYS_BETWEEN_PRICE_CHANGES    = data_for_creating_widgets_to_set_variables[shortname]["var"] = float(data_for_creating_widgets_to_set_variables[shortname]["box"].get())
+    TYPICAL_DAYS_BETWEEN_PRICE_CHANGES    = data_for_creating_widgets_to_set_variables[shortname]["var"] = float(data_for_creating_widgets_to_set_variables[shortname]["box"].get())
 
     shortname = "bp"; check_ctr += 1
-    abm.TYPICAL_DAYS_BETWEEN_PURCHASES        = data_for_creating_widgets_to_set_variables[shortname]["var"] = float(data_for_creating_widgets_to_set_variables[shortname]["box"].get())
+    TYPICAL_DAYS_BETWEEN_PURCHASES        = data_for_creating_widgets_to_set_variables[shortname]["var"] = float(data_for_creating_widgets_to_set_variables[shortname]["box"].get())
 
     shortname = "sp"; check_ctr += 1
-    abm.TYPICAL_STARTING_PRICE                = data_for_creating_widgets_to_set_variables[shortname]["var"] = float(data_for_creating_widgets_to_set_variables[shortname]["box"].get())
+    TYPICAL_STARTING_PRICE                = data_for_creating_widgets_to_set_variables[shortname]["var"] = float(data_for_creating_widgets_to_set_variables[shortname]["box"].get())
 
     assert(check_ctr == len(data_for_creating_widgets_to_set_variables))
 
@@ -115,93 +123,93 @@ def do_all_plots():
     if shall_we_show_this_graph("avsp"):
         plt.subplot(numrows,1,current_row)
         plt.ylabel("Average selling price")
-        plt.plot(list(range(abm.econ_iters_to_do_this_time)), abm.history_of_average_current_selling_price, ",")
+        plt.plot(list(range(econ_iters_to_do_this_time)), history_of_average_current_selling_price, ",")
         current_row += 1
 
     if shall_we_show_this_graph("sp"):
         plt.subplot(numrows,1,current_row)
-        plt.ylabel(f"Agent[{abm.agent_to_diagnose}]\nselling price")
-        plt.plot(list(range(abm.econ_iters_to_do_this_time)), abm.history_of_agents_price, ",")
+        plt.ylabel(f"Agent[{agent_to_diagnose}]\nselling price")
+        plt.plot(list(range(econ_iters_to_do_this_time)), history_of_agents_price, ",")
         current_row += 1
 
     if shall_we_show_this_graph("sfs"):
         plt.subplot(numrows,1,current_row)
-        plt.ylabel(f"Agent[{abm.agent_to_diagnose}]\nstock for sale")
+        plt.ylabel(f"Agent[{agent_to_diagnose}]\nstock for sale")
         axes = plt.gca()
-        axes.set_ylim([0, max(max(abm.history_of_agents_stock_for_sale), abm.MAXIMUM_STOCK * 1.2)])
-        plt.text(0,abm. MAXIMUM_STOCK, "Max stock")
-        plt.plot(list(range(abm.econ_iters_to_do_this_time)), abm.history_of_agents_stock_for_sale, ",")
-        plt.plot([0, abm.econ_iters_to_do_this_time], [abm.MAXIMUM_STOCK, abm.MAXIMUM_STOCK],color="#00ff00")
+        axes.set_ylim([0, max(max(history_of_agents_stock_for_sale), MAXIMUM_STOCK * 1.2)])
+        plt.text(0, MAXIMUM_STOCK, "Max stock")
+        plt.plot(list(range(econ_iters_to_do_this_time)), history_of_agents_stock_for_sale, ",")
+        plt.plot([0, econ_iters_to_do_this_time], [MAXIMUM_STOCK, MAXIMUM_STOCK],color="#00ff00")
         start = -1
-        for i in range(0, abm.econ_iters_to_do_this_time):
-            if abm.history_of_agents_stock_for_sale[i] >= abm.MAXIMUM_STOCK:
+        for i in range(0, econ_iters_to_do_this_time):
+            if history_of_agents_stock_for_sale[i] >= MAXIMUM_STOCK:
                 if start == -1:
                     start = i
-            if start >= 0 and abm.history_of_agents_stock_for_sale[i] < abm.MAXIMUM_STOCK:
-               plt.plot([start, i], [abm.MAXIMUM_STOCK, abm.MAXIMUM_STOCK], color="#ff0000", linewidth=3)
+            if start >= 0 and history_of_agents_stock_for_sale[i] < MAXIMUM_STOCK:
+               plt.plot([start, i], [MAXIMUM_STOCK, MAXIMUM_STOCK], color="#ff0000", linewidth=3)
                start = -1
         current_row += 1
 
     if shall_we_show_this_graph("dtfe"):
         plt.subplot(numrows,1,current_row)
-        plt.ylabel(f"Agent[{abm.agent_to_diagnose}]\ndays till stock full/empty")
+        plt.ylabel(f"Agent[{agent_to_diagnose}]\ndays till stock full/empty")
         axes = plt.gca()
         axes.set_ylim([0, 25])
-        plt.plot(list(range(abm.econ_iters_to_do_this_time)), abm.history_of_agents_days_to_full, ",", color="#ff0000")
-        plt.plot(list(range(abm.econ_iters_to_do_this_time)), abm.history_of_agents_days_to_empty, ",", color="#00ff00")
+        plt.plot(list(range(econ_iters_to_do_this_time)), history_of_agents_days_to_full, ",", color="#ff0000")
+        plt.plot(list(range(econ_iters_to_do_this_time)), history_of_agents_days_to_empty, ",", color="#00ff00")
         current_row += 1
 
     if shall_we_show_this_graph("gp"):
         plt.subplot(numrows,1,current_row)
-        plt.ylabel(f"Agent[{abm.agent_to_diagnose}]\ngoods purchased")
-        plt.plot(list(range(abm.econ_iters_to_do_this_time)), abm.history_of_agents_goods_purchased, ",")
+        plt.ylabel(f"Agent[{agent_to_diagnose}]\ngoods purchased")
+        plt.plot(list(range(econ_iters_to_do_this_time)), history_of_agents_goods_purchased, ",")
         current_row += 1
 
     if shall_we_show_this_graph("mon"):
         plt.subplot(numrows,1,current_row)
-        plt.ylabel(f"Agent[{abm.agent_to_diagnose}]\nour money")
-        plt.plot(list(range(abm.econ_iters_to_do_this_time)), abm.history_of_agents_our_money, ",")
+        plt.ylabel(f"Agent[{agent_to_diagnose}]\nour money")
+        plt.plot(list(range(econ_iters_to_do_this_time)), history_of_agents_our_money, ",")
         current_row += 1
 
     if shall_we_show_this_graph("wellmon"):
         plt.subplot(numrows,1,current_row)
-        plt.ylabel(f"Agent[{abm.agent_to_diagnose}]\nwellbeing from money")
-        plt.plot(list(range(abm.econ_iters_to_do_this_time)), abm.history_of_agents_well_money, ",")
+        plt.ylabel(f"Agent[{agent_to_diagnose}]\nwellbeing from money")
+        plt.plot(list(range(econ_iters_to_do_this_time)), history_of_agents_well_money, ",")
         current_row += 1
 
     if shall_we_show_this_graph("wellcon"):
         plt.subplot(numrows,1,current_row)
-        plt.ylabel(f"Agent[{abm.agent_to_diagnose}]\nwellbeing from consumption")
-        plt.plot(list(range(abm.econ_iters_to_do_this_time)), abm.history_of_agents_well_coms, ",")
+        plt.ylabel(f"Agent[{agent_to_diagnose}]\nwellbeing from consumption")
+        plt.plot(list(range(econ_iters_to_do_this_time)), history_of_agents_well_coms, ",")
         current_row += 1
 
     if shall_we_show_this_graph("wellmoncon"):
         plt.subplot(numrows,1,current_row)
-        plt.ylabel(f"Agent[{abm.agent_to_diagnose}]\nwellbeing from mon+con")
-        plt.plot(list(range(abm.econ_iters_to_do_this_time)), abm.history_of_agents_well_money_plus_cons, ",")
+        plt.ylabel(f"Agent[{agent_to_diagnose}]\nwellbeing from mon+con")
+        plt.plot(list(range(econ_iters_to_do_this_time)), history_of_agents_well_money_plus_cons, ",")
         current_row += 1
 
     # show histograms
 
     plt.subplot(numrows, 5, (numrows-1) * 5 + 1)
     plt.ylabel("Selling Price")
-    plt.hist(abm.all_prices_as_list, range=(0, max(abm.all_prices_as_list) * 1.1), bins=20)
+    plt.hist(all_prices_as_list, range=(0, max(all_prices_as_list) * 1.1), bins=20)
 
     plt.subplot(numrows, 5, (numrows-1) * 5 + 2)
     plt.ylabel("Stock for sale")
-    plt.hist(abm.stock_for_sale_as_list, range=(0, max(abm.stock_for_sale_as_list) * 1.1), bins=20)
+    plt.hist(stock_for_sale_as_list, range=(0, max(stock_for_sale_as_list) * 1.1), bins=20)
 
     plt.subplot(numrows, 5, (numrows-1) * 5 + 3)
     plt.ylabel("Money")
-    plt.hist(abm.our_money_as_list, range=(0, max(abm.our_money_as_list) * 1.1), bins=20)
+    plt.hist(our_money_as_list, range=(0, max(our_money_as_list) * 1.1), bins=20)
 
     plt.subplot(numrows, 5, (numrows-1) * 5 + 4)
     plt.ylabel("Purchased")
-    plt.hist(abm.num_units_purchased_on_last_shopping_trip_as_list, range=(0, max(abm.num_units_purchased_on_last_shopping_trip_as_list) * 1.3), bins=20)
+    plt.hist(num_units_purchased_on_last_shopping_trip_as_list, range=(0, max(num_units_purchased_on_last_shopping_trip_as_list) * 1.3), bins=20)
 
     plt.subplot(numrows, 5, (numrows-1) * 5 + 5)
     plt.ylabel("Available")
-    plt.hist(abm.num_units_available_on_last_shopping_trip_as_list, range=(0, max(abm.num_units_available_on_last_shopping_trip_as_list) * 1.3), bins=20)
+    plt.hist(num_units_available_on_last_shopping_trip_as_list, range=(0, max(num_units_available_on_last_shopping_trip_as_list) * 1.3), bins=20)
 
     plt.show()
 
@@ -213,8 +221,8 @@ def diagnostics():
     print("---------------------------------------------------------------------")
 
 def update_progress_bar(i):
-    if math.fmod(i, abm.econ_iters_to_do_this_time / 100) == 0:
-        progress_bar['value'] = float(i) / abm.econ_iters_to_do_this_time * 100.0
+    if math.fmod(i, econ_iters_to_do_this_time / 100) == 0:
+        progress_bar['value'] = float(i) / econ_iters_to_do_this_time * 100.0
         root.update_idletasks()
 
 def run_model():
@@ -225,25 +233,25 @@ def run_model():
         read_variables_from_gui()
         save_GUI_set_constants()
 
-    abm.initialise_model()
+    initialise_model()
 
-    for i in range(0, abm.econ_iters_to_do_this_time):
-        abm.iterate()
-        abm.append_current_state_to_history()
+    for i in range(0, econ_iters_to_do_this_time):
+        iterate()
+        append_current_state_to_history()
         if not colab:
             update_progress_bar(i)
 
-    abm.collect_data_for_plotting_histograms()
+    collect_data_for_plotting_histograms()
 
     do_all_plots()
 
 # prepare histograms
 
-abm.all_prices_as_list.clear()
-abm.stock_for_sale_as_list.clear()
-abm.our_money_as_list.clear()
-abm.num_units_purchased_on_last_shopping_trip_as_list.clear()
-abm.num_units_available_on_last_shopping_trip_as_list.clear()
+all_prices_as_list.clear()
+stock_for_sale_as_list.clear()
+our_money_as_list.clear()
+num_units_purchased_on_last_shopping_trip_as_list.clear()
+num_units_available_on_last_shopping_trip_as_list.clear()
 
 # Begin creation of button/GUI window
 if not colab:
@@ -263,15 +271,15 @@ data_for_creating_graphs_to_show_checkboxes =   {
                                                 }
 
 data_for_creating_widgets_to_set_variables = {
-                                                "na": {"desc": "Number of agents",                  "var": abm.NUM_AGENTS},
-                                                "sm": {"desc": "Typical starting money",            "var": abm.TYPICAL_STARTING_MONEY},
-                                                "nc": {"desc": "Num agents for price comparison",   "var": abm.NUM_AGENTS_FOR_PRICE_COMPARISON},
-                                                "ni": {"desc": "Num iterations to run",             "var": abm.econ_iters_to_do_this_time},
-                                                "gd": {"desc": "Typical goods made per Day",        "var": abm.TYPICAL_GOODS_MADE_PER_DAY},
-                                                "ms": {"desc": "Maximum stock",                     "var": abm.MAXIMUM_STOCK},
-                                                "pc": {"desc": "Typical days between price change", "var": abm.TYPICAL_DAYS_BETWEEN_PRICE_CHANGES},
-                                                "bp": {"desc": "Typical days between purchases",    "var": abm.TYPICAL_DAYS_BETWEEN_PURCHASES},
-                                                "sp": {"desc": "Typical starting price",            "var": abm.TYPICAL_STARTING_PRICE}
+                                                "na": {"desc": "Number of agents",                  "var": NUM_AGENTS},
+                                                "sm": {"desc": "Typical starting money",            "var": TYPICAL_STARTING_MONEY},
+                                                "nc": {"desc": "Num agents for price comparison",   "var": NUM_AGENTS_FOR_PRICE_COMPARISON},
+                                                "ni": {"desc": "Num iterations to run",             "var": econ_iters_to_do_this_time},
+                                                "gd": {"desc": "Typical goods made per Day",        "var": TYPICAL_GOODS_MADE_PER_DAY},
+                                                "ms": {"desc": "Maximum stock",                     "var": MAXIMUM_STOCK},
+                                                "pc": {"desc": "Typical days between price change", "var": TYPICAL_DAYS_BETWEEN_PRICE_CHANGES},
+                                                "bp": {"desc": "Typical days between purchases",    "var": TYPICAL_DAYS_BETWEEN_PURCHASES},
+                                                "sp": {"desc": "Typical starting price",            "var": TYPICAL_STARTING_PRICE}
                                              }
 
 load_GUI_set_constants()
