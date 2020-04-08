@@ -54,6 +54,15 @@ def load_GUI_set_constants():
 
 def read_variables_from_gui():
     # read variables from GUI
+    global NUM_AGENTS
+    global econ_iters_to_do_this_time
+    global NUM_AGENTS_FOR_PRICE_COMPARISON
+    global TYPICAL_STARTING_MONEY
+    global TYPICAL_GOODS_MADE_PER_DAY
+    global MAXIMUM_STOCK
+    global TYPICAL_DAYS_BETWEEN_PRICE_CHANGES
+    global TYPICAL_DAYS_BETWEEN_PURCHASES
+    global TYPICAL_STARTING_PRICE
 
     check_ctr = 0
 
@@ -64,7 +73,10 @@ def read_variables_from_gui():
     NUM_AGENTS                            = data_for_creating_widgets_to_set_variables[shortname]["var"] = int(data_for_creating_widgets_to_set_variables[shortname]["box"].get())
 
     shortname = "ni"; check_ctr += 1
-    econ_iters_to_do_this_time             = data_for_creating_widgets_to_set_variables[shortname]["var"] = int(data_for_creating_widgets_to_set_variables[shortname]["box"].get())
+    econ_iters_to_do_this_time            = data_for_creating_widgets_to_set_variables[shortname]["var"] = int(data_for_creating_widgets_to_set_variables[shortname]["box"].get())
+
+    print("econ_iters_to_do_this_time = ", econ_iters_to_do_this_time)
+
 
     shortname = "sm"; check_ctr += 1
     TYPICAL_STARTING_MONEY                = data_for_creating_widgets_to_set_variables[shortname]["var"] = float(data_for_creating_widgets_to_set_variables[shortname]["box"].get())
