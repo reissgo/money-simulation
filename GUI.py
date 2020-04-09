@@ -7,6 +7,11 @@ with colab = 1 the program skips that and only displays a matplotlib graph at th
 
 colab = 0
 
+if colab:
+    print("This is the Colab version of the simulation - it comes without the setup dialog")
+else:
+    print("This version will not run on Colab!")
+
 import math
 from matplotlib import pyplot as plt
 if not colab:
@@ -74,9 +79,6 @@ def read_variables_from_gui():
 
     shortname = "ni"; check_ctr += 1
     econ_iters_to_do_this_time            = data_for_creating_widgets_to_set_variables[shortname]["var"] = int(data_for_creating_widgets_to_set_variables[shortname]["box"].get())
-
-    print("econ_iters_to_do_this_time = ", econ_iters_to_do_this_time)
-
 
     shortname = "sm"; check_ctr += 1
     TYPICAL_STARTING_MONEY                = data_for_creating_widgets_to_set_variables[shortname]["var"] = float(data_for_creating_widgets_to_set_variables[shortname]["box"].get())
