@@ -81,14 +81,13 @@ class AgentClass:
         self.iterations_since_last_buy = 0
         self.iterations_since_last_sell = 0
         self.price_rank = 0
-        self.iterations_since_last_price_change = 0
-        self.iterations_since_last_purchase = 0
         self.sales_since_last_price_change = 0
         self.num_units_purchased_on_last_shopping_trip = 0
         self.num_units_available_on_last_shopping_trip = 0
         self.days_between_price_changes = approx_one() * TYPICAL_DAYS_BETWEEN_PRICE_CHANGES
         self.days_between_purchases = approx_one() * TYPICAL_DAYS_BETWEEN_PURCHASES
-
+        self.iterations_since_last_price_change = randint(0, int(self.days_between_price_changes * ITERATIONS_PER_DAY))
+        self.iterations_since_last_purchase = randint(0, int(self.days_between_purchases * ITERATIONS_PER_DAY))
 
 def random_agent():
     return randint(0, NUM_AGENTS-1)

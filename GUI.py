@@ -107,10 +107,12 @@ def do_all_plots():
     # prep
     #plt.rcParams["figure.figsize"] = (18,12)
 
-    plt.subplots_adjust(top=.98)
-    plt.subplots_adjust(bottom=.02)
-    plt.subplots_adjust(right=.98)
-    plt.subplots_adjust(left=.07)
+    my_dpi=96
+    plt.subplots(figsize=(1200/my_dpi, 700/my_dpi), dpi=my_dpi)
+    #plt.subplots_adjust(top=.98)
+    #plt.subplots_adjust(bottom=.02)
+    #plt.subplots_adjust(right=.98)
+    #plt.subplots_adjust(left=.07)
 
     # count selected graphs
     numrows = 0
@@ -127,19 +129,27 @@ def do_all_plots():
     # show selected graphs
     if shall_we_show_this_graph("avsp"):
         plt.subplot(numrows,1,current_row)
-        plt.ylabel("Average selling price")
+        plt.ylabel("Average\nselling price")
         plt.plot(list(range(abm.econ_iters_to_do_this_time)), abm.history_of_average_current_selling_price, ",")
+
+        frac = .666
+        maxrhs = max(abm.history_of_average_current_selling_price[int(abm.econ_iters_to_do_this_time*frac):])
+        minrhs = min(abm.history_of_average_current_selling_price[int(abm.econ_iters_to_do_this_time*frac):])
+        plt.text(abm.econ_iters_to_do_this_time*frac, minrhs, "Range {:.1f}%".format((maxrhs-minrhs)*100/minrhs))
+        plt.plot([abm.econ_iters_to_do_this_time*frac, abm.econ_iters_to_do_this_time], [maxrhs,maxrhs], color="#00ff00")
+        plt.plot([abm.econ_iters_to_do_this_time*frac, abm.econ_iters_to_do_this_time], [minrhs,minrhs], color="#00ff00")
+
         current_row += 1
 
     if shall_we_show_this_graph("sp"):
         plt.subplot(numrows,1,current_row)
-        plt.ylabel(f"Agent[{abm.agent_to_diagnose}]\nselling price")
+        plt.ylabel(f"Agent[{abm.agent_to_diagnose}]\nselling\nprice")
         plt.plot(list(range(abm.econ_iters_to_do_this_time)), abm.history_of_agents_price, ",")
         current_row += 1
 
     if shall_we_show_this_graph("sfs"):
         plt.subplot(numrows,1,current_row)
-        plt.ylabel(f"Agent[{abm.agent_to_diagnose}]\nstock for sale")
+        plt.ylabel(f"Agent[{abm.agent_to_diagnose}]\nstock\nfor sale")
         axes = plt.gca()
         axes.set_ylim([0, max(max(abm.history_of_agents_stock_for_sale), abm.MAXIMUM_STOCK * 1.2)])
         plt.text(0, abm.MAXIMUM_STOCK, "Max stock")
@@ -157,7 +167,7 @@ def do_all_plots():
 
     if shall_we_show_this_graph("dtfe"):
         plt.subplot(numrows,1,current_row)
-        plt.ylabel(f"Agent[{abm.agent_to_diagnose}]\ndays till stock full/empty")
+        plt.ylabel(f"Agent[{abm.agent_to_diagnose}]\ndays till\nstock\nfull/empty")
         axes = plt.gca()
         axes.set_ylim([0, 25])
         plt.plot(list(range(abm.econ_iters_to_do_this_time)), abm.history_of_agents_days_to_full, ",", color="#ff0000")
@@ -166,7 +176,7 @@ def do_all_plots():
 
     if shall_we_show_this_graph("gp"):
         plt.subplot(numrows,1,current_row)
-        plt.ylabel(f"Agent[{abm.agent_to_diagnose}]\ngoods purchased")
+        plt.ylabel(f"Agent[{abm.agent_to_diagnose}]\ngoods\npurchased")
         plt.plot(list(range(abm.econ_iters_to_do_this_time)),abm. history_of_agents_goods_purchased, ",")
         current_row += 1
 
@@ -178,19 +188,19 @@ def do_all_plots():
 
     if shall_we_show_this_graph("wellmon"):
         plt.subplot(numrows,1,current_row)
-        plt.ylabel(f"Agent[{abm.agent_to_diagnose}]\nwellbeing from money")
+        plt.ylabel(f"Agent[{abm.agent_to_diagnose}]\nwellbeing\nfrom money")
         plt.plot(list(range(abm.econ_iters_to_do_this_time)), abm.history_of_agents_well_money, ",")
         current_row += 1
 
     if shall_we_show_this_graph("wellcon"):
         plt.subplot(numrows,1,current_row)
-        plt.ylabel(f"Agent[{abm.agent_to_diagnose}]\nwellbeing from consumption")
+        plt.ylabel(f"Agent[{abm.agent_to_diagnose}]\nwellbeing\nfrom\nconsumption")
         plt.plot(list(range(abm.econ_iters_to_do_this_time)), abm.history_of_agents_well_coms, ",")
         current_row += 1
 
     if shall_we_show_this_graph("wellmoncon"):
         plt.subplot(numrows,1,current_row)
-        plt.ylabel(f"Agent[{abm.agent_to_diagnose}]\nwellbeing from mon+con")
+        plt.ylabel(f"Agent[{abm.agent_to_diagnose}]\nwellbeing\nfrom\nmon+con")
         plt.plot(list(range(abm.econ_iters_to_do_this_time)), abm.history_of_agents_well_money_plus_cons, ",")
         current_row += 1
 
@@ -279,7 +289,7 @@ data_for_creating_widgets_to_set_variables = {
                                                 "na": {"desc": "Number of agents",                  "var": abm.NUM_AGENTS},
                                                 "sm": {"desc": "Typical starting money",            "var": abm.TYPICAL_STARTING_MONEY},
                                                 "nc": {"desc": "Num agents for price comparison",   "var": abm.NUM_AGENTS_FOR_PRICE_COMPARISON},
-                                                "ni": {"desc": "Num iterations to run",             "var": abm.econ_iters_to_do_this_time},
+                                                "ni": {"desc": "Num iterations to run (1000=1day)", "var": abm.econ_iters_to_do_this_time},
                                                 "gd": {"desc": "Typical goods made per Day",        "var": abm.TYPICAL_GOODS_MADE_PER_DAY},
                                                 "ms": {"desc": "Maximum stock",                     "var": abm.MAXIMUM_STOCK},
                                                 "pc": {"desc": "Typical days between price change", "var": abm.TYPICAL_DAYS_BETWEEN_PRICE_CHANGES},
