@@ -133,7 +133,7 @@ def purchase():
 
     for buying_agent_idx in shuffled_agent_index_list:
         if agents[buying_agent_idx].iterations_since_last_purchase > (agents[buying_agent_idx].days_between_purchases * ITERATIONS_PER_DAY):
-            agents[buying_agent_idx].iterations_since_last_purchase = 0
+
             selling_agent_idx = select_agent_to_buy_from(buying_agent_idx)
 
             if selling_agent_idx == NO_AGENT_FOUND:
@@ -175,6 +175,7 @@ def purchase():
                             agents[buying_agent_idx].goods_purchased_in_latest_iteration += 1
                             agents[buying_agent_idx].our_money -= (agents[selling_agent_idx].selling_price * UNIT_OF_GOODS)
                             agents[buying_agent_idx].iterations_since_last_buy = 0
+                            agents[buying_agent_idx].iterations_since_last_purchase = 0
 
                         else:  # report that we can't afford to purchase anything
                             assert purchase_made_flag is False
