@@ -267,7 +267,7 @@ def initialise_model():
 
     diagnostics.clear_histories()
 
-def iterate():
+def one_iteration():
     purchase()
     produce()
     modify_prices()

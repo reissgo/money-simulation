@@ -251,7 +251,7 @@ def run_model():
     abm.initialise_model()
 
     for i in range(0, abm.econ_iters_to_do_this_time):
-        abm.iterate()
+        abm.one_iteration()
         abm.diagnostics.append_current_state_to_history(abm.agents,avsp=abm.average_current_selling_price(),
                                                         rwfs=abm.raw_wellbeing_from_savings(abm.agents[abm.diagnostics.agent_to_diagnose].our_money),
                                                         wfc=abm.wellbeing_from_consumption(abm.diagnostics.agent_to_diagnose, 0),
