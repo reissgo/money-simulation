@@ -27,9 +27,7 @@ class AgentClass:
 
     def __init__(self):
         self.goods_purchased = TYPICAL_GOODS_MADE_PER_DAY * approx_one() / 2
-        self.goods_purchased_in_latest_iteration = 0
         self.stock_for_sale = MAXIMUM_STOCK * approx_one() / 2.0
-        self.stock_sold_in_latest_iteration = 0
         self.goods_we_produce_per_day = TYPICAL_GOODS_MADE_PER_DAY * approx_one()
         self.our_money = TYPICAL_STARTING_MONEY * approx_one()
         self.num_days_savings_will_last = 0
@@ -167,12 +165,10 @@ def purchase():
 
                             # do the purchase
                             agents[selling_agent_idx].stock_for_sale -= UNIT_OF_GOODS
-                            agents[selling_agent_idx].stock_sold_in_latest_iteration += UNIT_OF_GOODS
                             agents[selling_agent_idx].our_money += (agents[selling_agent_idx].selling_price * UNIT_OF_GOODS)
                             agents[selling_agent_idx].iterations_since_last_sell = 0
                             agents[selling_agent_idx].sales_since_last_price_change += 1
                             agents[buying_agent_idx].goods_purchased += UNIT_OF_GOODS
-                            agents[buying_agent_idx].goods_purchased_in_latest_iteration += 1
                             agents[buying_agent_idx].our_money -= (agents[selling_agent_idx].selling_price * UNIT_OF_GOODS)
                             agents[buying_agent_idx].iterations_since_last_buy = 0
                             agents[buying_agent_idx].iterations_since_last_purchase = 0
@@ -272,10 +268,6 @@ def initialise_model():
     diagnostics.clear_histories()
 
 def iterate():
-    for agent in agents:
-        agent.goods_purchased_in_latest_iteration = 0
-        agent.stock_sold_in_latest_iteration = 0
-
     purchase()
     produce()
     modify_prices()
