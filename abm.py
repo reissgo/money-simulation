@@ -14,7 +14,7 @@ TYPICAL_DAYS_BETWEEN_PURCHASES = 1
 UNIT_OF_GOODS = 1.0
 NO_AGENT_FOUND = -1
 SHOW_SALES_INFO = False
-INFINITE = 9999999
+A_BIG_NUMER = 9999999
 econ_iters_to_do_this_time = 20000
 one_day_half_life_multiplier = exp(log(.5) / ITERATIONS_PER_DAY)
 
@@ -46,9 +46,6 @@ class AgentClass:
         self.iterations_since_last_price_change = randint(0, int(self.days_between_price_changes * ITERATIONS_PER_DAY))
         self.iterations_since_last_purchase = randint(0, int(self.days_between_purchases * ITERATIONS_PER_DAY))
 
-def random_agent():
-    return randint(0, NUM_AGENTS-1)
-
 def random_other_agent_with_stock_for_sale(buyer_idx): # done
     for ctr in range(1, 10):
         ans = randint(0, NUM_AGENTS-1)
@@ -58,16 +55,13 @@ def random_other_agent_with_stock_for_sale(buyer_idx): # done
 
 def average_current_selling_price():
     average = 0
-
     for agent in agents:
         average += agent.selling_price
-
     average /= NUM_AGENTS
-
     return average
 
 def select_agent_to_buy_from(purchasing_agent_idx):
-    ans = NO_AGENT_FOUND
+    agent_to_buy_from = NO_AGENT_FOUND
     agent_list_weighting = []
     small_list_of_other_agent_idxs = []
     for r in range(0, NUM_AGENTS_FOR_PRICE_COMPARISON):
@@ -102,9 +96,9 @@ def select_agent_to_buy_from(purchasing_agent_idx):
         for idx in range(0,len(small_list_of_other_agent_idxs)):
             sum_so_far += agent_list_weighting[idx]
             if sum_so_far >= ran:
-                ans = small_list_of_other_agent_idxs[idx]
+                agent_to_buy_from = small_list_of_other_agent_idxs[idx]
                 break
-        return ans
+        return agent_to_buy_from
     else:
         return NO_AGENT_FOUND
 
@@ -200,20 +194,20 @@ def modify_prices():
         agent.days_till_stock_storage_full = -1
         agent.days_till_stock_storage_empty = -1
 
-        sales_per_day_as_measured_since_last_price_change = agent.sales_since_last_price_change * ITERATIONS_PER_DAY / max(1,
-                                                                                             agent.iterations_since_last_price_change)
+        sales_per_day_as_measured_since_last_price_change = agent.sales_since_last_price_change * ITERATIONS_PER_DAY / \
+                                                            max(1,agent.iterations_since_last_price_change)
         stock_growth_per_day = agent.goods_we_produce_per_day - sales_per_day_as_measured_since_last_price_change
 
         # calc days_till_stock_storage_full/empty - only really needed after the "if" but calc here for diagnostics
         if stock_growth_per_day > 0:
             agent.days_till_stock_storage_full = (MAXIMUM_STOCK - agent.stock_for_sale) / stock_growth_per_day
         else:
-            agent.days_till_stock_storage_full = INFINITE
+            agent.days_till_stock_storage_full = A_BIG_NUMER
 
         if stock_growth_per_day < 0:
             agent.days_till_stock_storage_empty = agent.stock_for_sale / (-1 * stock_growth_per_day)
         else:
-            agent.days_till_stock_storage_empty = INFINITE
+            agent.days_till_stock_storage_empty = A_BIG_NUMER
 
         if agent.iterations_since_last_price_change > (agent.days_between_price_changes * ITERATIONS_PER_DAY):
 
@@ -233,12 +227,12 @@ def modify_prices():
                     agent.iterations_since_last_price_change = 0
                     agent.sales_since_last_price_change = 0
 
-                if 20 >= agent.days_till_stock_storage_full < 40:          # // WON'T BEE FULL FOR AGES - raise prices!
+                if 20 >= agent.days_till_stock_storage_full < 40:          # // WON'T BE FULL FOR AGES - raise prices!
                     agent.selling_price *= 1.02
                     agent.iterations_since_last_price_change = 0
                     agent.sales_since_last_price_change = 0
 
-                if agent.days_till_stock_storage_full >= 40:              # // WON'T BEE FULL FOR AGES - raise prices!
+                if agent.days_till_stock_storage_full >= 40:              # // WON'T BE FULL FOR AGES - raise prices!
                     agent.selling_price *= 1.03
                     agent.iterations_since_last_price_change = 0
                     agent.sales_since_last_price_change = 0
@@ -259,12 +253,9 @@ def consume():
         agent.goods_purchased *= one_day_half_life_multiplier
 
 def initialise_model():
-    # create and initialise all agents
     global agents
     agents.clear()
-
     agents = [AgentClass() for _ in range(NUM_AGENTS)]
-
     diagnostics.clear_histories()
 
 def one_iteration():

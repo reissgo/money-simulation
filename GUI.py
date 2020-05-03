@@ -17,7 +17,7 @@ from matplotlib import pyplot as plt
 if not colab:
     from tkinter import *
     from tkinter.ttk import *  # needed for progress bar
-
+import sys
 import abm
 
 def save_GUI_set_constants():
@@ -300,6 +300,8 @@ data_for_creating_widgets_to_set_variables = {
                                                 "sp": {"desc": "Typical starting price",            "var": abm.TYPICAL_STARTING_PRICE}
                                              }
 
+print("pyinstaller BUGCHASE A")
+
 load_GUI_set_constants()
 
 # make widgets to set variables
@@ -350,7 +352,7 @@ else:
     run_button = Button(frame_for_action_buttons, text="Run!", command=run_model)
     run_button.grid(row=0, column=0, padx=5, pady=5, sticky=W + E)
 
-    ex_button = Button(frame_for_action_buttons, text="Exit", command=exit)
+    ex_button = Button(frame_for_action_buttons, text="Exit", command=sys.exit)
     ex_button.grid(row=0, column=1, padx=5, pady=5, sticky=W+E)
 
     diag_button = Button(frame_for_action_buttons, text="Debug", command=diagnostics)
